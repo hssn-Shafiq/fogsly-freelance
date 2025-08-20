@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FOGSLY Freelance Marketplace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Kalam:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root, .light {
+          --color-bg-primary: #FFFFFF;
+          --color-bg-secondary: #F1F5F9;
+          --color-bg-tertiary: #E2E8F0;
+          --color-bg-hero: #0b1c4a;
+          --color-text-hero: #fff;
+          --color-text-primary: #0F172A;
+          --color-text-secondary: #475569;
+          --color-primary: #3B82F6;
+          --color-accent: #06B6D4;
+          --color-border: #E2E8F0;
+          --color-card: #FFFFFF;
+          --color-success-bg: #F0FDF4;
+          --color-success-fg: #15803D;
+          --color-success-icon: #16A34A;
+        }
+
+        .dark {
+          --color-bg-primary: #020617;
+          --color-bg-secondary: #0f172a;
+          --color-bg-tertiary: #1e293b;
+          --color-bg-hero: #0b1c4a;
+          --color-text-hero: #fff;
+          --color-text-primary: #F8FAFC;
+          --color-text-secondary: #94A3B8;
+          --color-primary: #60A5FA;
+          --color-accent: #22D3EE;
+          --color-border: #1e293b;
+          --color-card: #0f172a;
+          --color-success-bg: #052e16;
+          --color-success-fg: #86EFAC;
+          --color-success-icon: #4ADE80;
+        }
+
+        .desert {
+          --color-bg-primary: #F3EFE4;
+          --color-bg-secondary: #EAE6D9;
+          --color-bg-tertiary: #E0DCCF;
+          --color-bg-hero: #2c2020;
+          --color-text-hero: #fff;
+          --color-text-primary: #2C2C2C;
+          --color-text-secondary: #5A5A5A;
+          --color-primary: #C85738;
+          --color-accent: #7DB1D0;
+          --color-border: #D4D0C3;
+          --color-card: #F3EFE4;
+          --color-success-bg: #e8f3e8;
+          --color-success-fg: #295229;
+          --color-success-icon: #4a754a;
+        }
+        
+        html {
+          font-family: 'Inter', sans-serif;
+        }
+
+        .font-kalam {
+          font-family: 'Kalam', cursive;
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.1.1/",
+    "react": "https://esm.sh/react@^19.1.1",
+    "lucide-react": "https://esm.sh/lucide-react@^0.539.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.1/",
+    "framer-motion": "https://esm.sh/framer-motion@^12.23.12",
+    "recharts": "https://esm.sh/recharts@^2.12.7"
+  }
+}
+</script>
+<script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          keyframes: {
+            fadeIn: {
+              'from': { opacity: '0', transform: 'translateY(-10px)' },
+              'to': { opacity: '1', transform: 'translateY(0)' },
+            },
+          },
+          animation: {
+            fadeIn: 'fadeIn 0.3s ease-out forwards',
+          },
+        },
+      },
+    };
+  </script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-[--color-bg-primary]">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+</body>
+</html>
