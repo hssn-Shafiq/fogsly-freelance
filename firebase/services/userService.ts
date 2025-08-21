@@ -9,7 +9,8 @@ import {
   where,
   getDocs
 } from "firebase/firestore";
-import { db } from "../config";
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from "../config";
 import { UserData, UserProfile } from "../types/user";
 
 // Collections
@@ -185,6 +186,70 @@ export const setupNewUser = async (uid: string, email: string, name: string): Pr
     console.log("New user setup completed successfully");
   } catch (error) {
     console.error("Error setting up new user:", error);
+    throw error;
+  }
+};
+
+/**
+ * Upload avatar image to Firebase Storage
+ */
+export const uploadAvatarImage = async (file: File, userId: string): Promise<string> => {
+  try {
+    const fileName = `users/${userId}/avatar.${file.name.split('.').pop()}`;
+    const storageRef = ref(storage, fileName);
+    const snapshot = await uploadBytes(storageRef, file);
+    return await getDownloadURL(snapshot.ref);
+  } catch (error) {
+    console.error('Error uploading avatar image:', error);
+    throw new Error('Failed to upload avatar image');
+  }
+};
+
+/**
+ * Upload cover image to Firebase Storage
+ */
+export const uploadCoverImage = async (file: File, userId: string): Promise<string> => {
+  try {
+    const fileName = `users/${userId}/cover.${file.name.split('.').pop()}`;
+    const storageRef = ref(storage, fileName);
+    const snapshot = await uploadBytes(storageRef, file);
+    return await getDownloadURL(snapshot.ref);
+  } catch (error) {
+    console.error('Error uploading cover image:', error);
+    throw new Error('Failed to upload cover image');
+  }
+};
+
+/**
+ * Update user profile with new avatar URL
+ */
+export const updateUserAvatar = async (userId: string, avatarUrl: string): Promise<void> => {
+  try {
+    const profileRef = doc(db, USER_PROFILES_COLLECTION, userId);
+    await updateDoc(profileRef, {
+      avatarUrl,
+      updatedAt: serverTimestamp()
+    });
+    console.log('Avatar URL updated successfully');
+  } catch (error) {
+    console.error('Error updating avatar URL:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update user profile with new cover URL
+ */
+export const updateUserCover = async (userId: string, coverUrl: string): Promise<void> => {
+  try {
+    const profileRef = doc(db, USER_PROFILES_COLLECTION, userId);
+    await updateDoc(profileRef, {
+      coverUrl,
+      updatedAt: serverTimestamp()
+    });
+    console.log('Cover URL updated successfully');
+  } catch (error) {
+    console.error('Error updating cover URL:', error);
     throw error;
   }
 };

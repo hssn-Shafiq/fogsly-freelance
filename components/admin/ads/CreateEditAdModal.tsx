@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   X, 
@@ -19,6 +19,8 @@ import { Label } from '../../ui/Label';
 import { Textarea } from '../../ui/Textarea';
 import { Ad, AdCreationData, AdFormState, AdFormErrors, AD_CONFIG } from '../../../firebase/types/ads';
 import { createAd, updateAd, uploadVideoToFirebase, uploadImageToFirebase } from '../../../firebase/services/adService';
+import { formatFog, formatUsd, getFogCoinSettingsWithCache, formatFogWithUsdSync } from '../../../utils/fogCoinUtils';
+import { FogCoinSettings } from '../../../firebase/types/fogCoinSettings';
 import { toast } from 'react-hot-toast';
 
 interface CreateEditAdModalProps {
@@ -36,32 +38,124 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
   currentAdminId,
   onSuccess
 }) => {
-  const [formState, setFormState] = useState<AdFormState>(() => ({
-    title: editingAd?.title || '',
-    description: editingAd?.description || '',
+  const [fogSettings, setFogSettings] = useState<FogCoinSettings | null>(null);
+  const [formState, setFormState] = useState<AdFormState>({
+    title: '',
+    description: '',
     videoFile: null,
+    videoUrl: '',
     previewImageFile: null,
-    questions: editingAd?.questions.slice(0, 3).map(q => ({
-      question: q.question,
-      options: [...q.options],
-      correctAnswer: q.correctAnswer
-    })) || [
+    previewImageUrl: '',
+    questions: [
       { question: '', options: ['', '', '', ''], correctAnswer: 0 },
       { question: '', options: ['', '', '', ''], correctAnswer: 0 },
       { question: '', options: ['', '', '', ''], correctAnswer: 0 }
     ],
     feedbackQuestion: {
-      title: editingAd?.questions[3]?.question || 'User Feedback',
-      question: editingAd?.questions[3]?.question || 'How would you rate this ad based on your interests, {userName}?'
+      title: 'User Feedback',
+      question: 'How would you rate this ad based on your interests, {userName}?'
     },
-    totalReward: editingAd?.totalReward || 10,
-    isOneTimePerUser: editingAd?.isOneTimePerUser || false,
-    maxDailyViews: editingAd?.maxDailyViews || 5
-  }));
+    totalReward: 10,
+    isOneTimePerUser: false,
+    maxDailyViews: 5
+  });
 
   const [errors, setErrors] = useState<AdFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
+
+  // Load FOG coin settings when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      const loadFogSettings = async () => {
+        try {
+          const settings = await getFogCoinSettingsWithCache();
+          setFogSettings(settings);
+        } catch (error) {
+          console.error('Error loading FOG settings:', error);
+          // Set fallback settings
+          setFogSettings({
+            id: 'fallback',
+            fogToUsdRate: 0.10,
+            minimumWithdrawAmount: 50,
+            maximumDailyEarnings: 100,
+            isWithdrawalsEnabled: true,
+            lastUpdatedBy: 'system',
+            lastUpdatedAt: new Date(),
+            effectiveFrom: new Date(),
+            notes: 'Fallback settings'
+          });
+        }
+      };
+      loadFogSettings();
+    }
+  }, [isOpen]);
+
+  // Update form state when editingAd changes
+  useEffect(() => {
+    if (editingAd) {
+      console.log('Editing ad data:', editingAd);
+      console.log('Questions available:', editingAd.questions);
+      
+      // Ensure we have at least 4 questions (3 custom + 1 feedback)
+      const customQuestions = editingAd.questions.slice(0, 3);
+      const feedbackQuestion = editingAd.questions.find(q => q.type === 'feedback') || editingAd.questions[3];
+      
+      console.log('Custom questions:', customQuestions);
+      console.log('Feedback question:', feedbackQuestion);
+      
+      setFormState({
+        title: editingAd.title || '',
+        description: editingAd.description || '',
+        videoFile: null, // Files can't be pre-populated for security reasons
+        videoUrl: editingAd.videoUrl || '',
+        previewImageFile: null,
+        previewImageUrl: editingAd.previewImage || '',
+        questions: customQuestions.length > 0 ? customQuestions.map(q => ({
+          question: q.question,
+          options: [...q.options],
+          correctAnswer: q.correctAnswer
+        })) : [
+          { question: '', options: ['', '', '', ''], correctAnswer: 0 },
+          { question: '', options: ['', '', '', ''], correctAnswer: 0 },
+          { question: '', options: ['', '', '', ''], correctAnswer: 0 }
+        ],
+        feedbackQuestion: {
+          title: feedbackQuestion?.question || 'User Feedback',
+          question: feedbackQuestion?.question || 'How would you rate this ad based on your interests, {userName}?'
+        },
+        totalReward: editingAd.totalReward || 10,
+        isOneTimePerUser: editingAd.isOneTimePerUser || false,
+        maxDailyViews: editingAd.maxDailyViews || 5
+      });
+    } else {
+      // Reset form for new ad creation
+      console.log('Creating new ad - resetting form');
+      setFormState({
+        title: '',
+        description: '',
+        videoFile: null,
+        videoUrl: '',
+        previewImageFile: null,
+        previewImageUrl: '',
+        questions: [
+          { question: '', options: ['', '', '', ''], correctAnswer: 0 },
+          { question: '', options: ['', '', '', ''], correctAnswer: 0 },
+          { question: '', options: ['', '', '', ''], correctAnswer: 0 }
+        ],
+        feedbackQuestion: {
+          title: 'User Feedback',
+          question: 'How would you rate this ad based on your interests, {userName}?'
+        },
+        totalReward: 10,
+        isOneTimePerUser: false,
+        maxDailyViews: 5
+      });
+    }
+    
+    // Reset errors when switching between create/edit
+    setErrors({});
+  }, [editingAd]);
 
   const validateForm = useCallback((): boolean => {
     const newErrors: AdFormErrors = {};
@@ -80,7 +174,7 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
       newErrors.previewImageFile = 'Preview image is required';
     }
     if (formState.totalReward < 1 || formState.totalReward > 100) {
-      newErrors.totalReward = 'Reward must be between 1 and 100';
+      newErrors.totalReward = 'Reward must be between 1 and 100 FOG coins';
     }
     if (!formState.feedbackQuestion.title.trim()) {
       newErrors.feedbackQuestion = 'Feedback question title is required';
@@ -315,18 +409,22 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="grid grid-cols-3 gap-4 text-sm">
                       <div>
                         <p className="text-[--color-text-secondary]">Total Reward</p>
-                        <p className="font-semibold">{formState.totalReward} coins</p>
+                        <p className="font-semibold">{formatFog(formState.totalReward)}</p>
                       </div>
                       <div>
                         <p className="text-[--color-text-secondary]">Per Question</p>
                         <p className="font-semibold">
-                          {formState.questions.length > 0 
+                          {formatFog(formState.questions.length > 0 
                             ? Math.round(formState.totalReward / formState.questions.length) 
-                            : 0} coins
+                            : 0)}
                         </p>
+                      </div>
+                      <div>
+                        <p className="text-[--color-text-secondary]">USD Value</p>
+                        <p className="font-semibold">{formatUsd((fogSettings?.fogToUsdRate || 0.10) * formState.totalReward)}</p>
                       </div>
                     </div>
                     
@@ -424,6 +522,16 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
                                   {(formState.videoFile.size / (1024 * 1024)).toFixed(1)} MB
                                 </p>
                               </>
+                            ) : formState.videoUrl && editingAd ? (
+                              <>
+                                <Video className="w-8 h-8 text-blue-600 mb-2" />
+                                <p className="text-sm text-[--color-text-primary] font-medium">
+                                  Current Video
+                                </p>
+                                <p className="text-xs text-[--color-text-secondary]">
+                                  Click to replace with new video
+                                </p>
+                              </>
                             ) : (
                               <>
                                 <Upload className="w-8 h-8 text-[--color-text-secondary] mb-2" />
@@ -431,7 +539,7 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
                                   Click to upload video
                                 </p>
                                 <p className="text-xs text-[--color-text-secondary]">
-                                  MP4, WebM, OGG (Max 100MB)
+                                  MP4, WebM, OGV (Max 100MB)
                                 </p>
                               </>
                             )}
@@ -463,6 +571,16 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
                                 </p>
                                 <p className="text-xs text-[--color-text-secondary]">
                                   {(formState.previewImageFile.size / (1024 * 1024)).toFixed(1)} MB
+                                </p>
+                              </>
+                            ) : formState.previewImageUrl && editingAd ? (
+                              <>
+                                <ImageIcon className="w-8 h-8 text-blue-600 mb-2" />
+                                <p className="text-sm text-[--color-text-primary] font-medium">
+                                  Current Image
+                                </p>
+                                <p className="text-xs text-[--color-text-secondary]">
+                                  Click to replace with new image
                                 </p>
                               </>
                             ) : (
@@ -628,7 +746,7 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <Label htmlFor="totalReward">Total Reward (Coins)</Label>
+                      <Label htmlFor="totalReward">Total Reward (FOG Coins)</Label>
                       <Input
                         id="totalReward"
                         type="number"

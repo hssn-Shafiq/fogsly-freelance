@@ -5,6 +5,8 @@ import { Button } from '../ui/Button';
 import { getUserAdStats } from '../../firebase/services/adService';
 import { UserAdStats } from '../../firebase/types/ads';
 import { User } from '../../firebase/types/user';
+import { formatFog, formatUsd, getFogCoinSettingsWithCache, formatFogWithUsdSync } from '../../utils/fogCoinUtils';
+import { FogCoinSettings } from '../../firebase/types/fogCoinSettings';
 
 interface BalanceCardProps {
   icon: React.ElementType;
@@ -43,25 +45,42 @@ interface ProfileBalanceCardsProps {
 const ProfileBalanceCards = React.memo(({ currentUser, navigate }: ProfileBalanceCardsProps) => {
   const [userStats, setUserStats] = useState<UserAdStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [fogSettings, setFogSettings] = useState<FogCoinSettings | null>(null);
 
   useEffect(() => {
-    const loadUserStats = async () => {
+    const loadData = async () => {
       if (!currentUser) {
         setIsLoading(false);
         return;
       }
 
       try {
-        const stats = await getUserAdStats(currentUser.uid);
+        const [stats, settings] = await Promise.all([
+          getUserAdStats(currentUser.uid),
+          getFogCoinSettingsWithCache()
+        ]);
         setUserStats(stats);
+        setFogSettings(settings);
       } catch (error) {
-        console.error('Error loading user stats:', error);
+        console.error('Error loading data:', error);
+        // Set fallback settings if FOG settings fail
+        setFogSettings({
+          id: 'fallback',
+          fogToUsdRate: 0.10,
+          minimumWithdrawAmount: 50,
+          maximumDailyEarnings: 100,
+          isWithdrawalsEnabled: true,
+          lastUpdatedBy: 'system',
+          lastUpdatedAt: new Date(),
+          effectiveFrom: new Date(),
+          notes: 'Fallback settings'
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadUserStats();
+    loadData();
   }, [currentUser]);
 
   const handleWatchAds = () => {
@@ -89,25 +108,27 @@ const ProfileBalanceCards = React.memo(({ currentUser, navigate }: ProfileBalanc
     );
   }
 
-  const totalBalance = userStats?.totalEarnings || 0;
-  const todayEarnings = userStats?.availableBalance || 0; // Using available balance for today's earnings
+  // All earnings are stored in FOG coins, with dynamic conversion rates
+  const totalEarningsFog = userStats?.totalEarnings || 0;
+  const availableBalanceFog = userStats?.availableBalance || 0;
   const adsWatched = userStats?.totalAdsWatched || 0;
+  const currentRate = fogSettings?.fogToUsdRate || 0.10;
 
   return (
     <div className="grid md:grid-cols-3 gap-6 mb-8">
       <BalanceCard 
         icon={Wallet} 
         title="Total Earnings" 
-        amount={`$${(totalBalance * 0.1).toFixed(2)}`} 
-        description={`$${todayEarnings.toFixed(2)} earned today`} 
+        amount={formatFog(totalEarningsFog)} 
+        description={`≈ ${formatUsd(totalEarningsFog * currentRate)} USD value`} 
         cta="Withdraw"
         onClick={handleWithdraw}
       />
       <BalanceCard 
         icon={Coins} 
-        title="FOG Coins" 
-        amount={`${Math.floor(totalBalance)} FOG`} 
-        description={`≈ $${totalBalance.toFixed(2)}`} 
+        title="Available Balance" 
+        amount={formatFog(availableBalanceFog)} 
+        description={`≈ ${formatUsd(availableBalanceFog * currentRate)} ready to withdraw`} 
         cta="Exchange"
       />
       <BalanceCard 

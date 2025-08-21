@@ -17,10 +17,10 @@ export interface EditForm {
   bio: string;
   skills: string[];
   social: {
-    linkedin: string;
-    twitter: string;
-    dribbble: string;
-    github: string;
+    linkedin?: string;
+    twitter?: string;
+    dribbble?: string;
+    github?: string;
   };
 }
 
@@ -50,6 +50,8 @@ export interface ProfileActions {
   handleSkillRemove: (skill: string) => void;
   handleCancelEdit: () => void;
   handleSaveProfile: () => void;
+  handleAvatarUpload: (file: File) => Promise<void>;
+  handleCoverUpload: (file: File) => Promise<void>;
 }
 
 // Static fallback data

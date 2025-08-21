@@ -57,6 +57,7 @@ export type AdminRoute =
   | 'user-management'
   | 'content-management'
   | 'ads-management'
+  | 'fogcoin-management'
   | 'analytics'
   | 'settings';
 

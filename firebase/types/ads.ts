@@ -5,7 +5,7 @@ export interface AdQuestion {
   question: string;
   options: string[];
   correctAnswer: number; // Index of correct answer
-  reward: number; // Points/coins for correct answer
+  reward: number; // FOG coins earned for correct answer (1 FOG = $0.10)
   type?: 'multiple-choice' | 'feedback'; // Type of question
 }
 
@@ -16,8 +16,8 @@ export interface Ad {
   videoUrl: string; // Local path or Firebase Storage URL
   previewImage: string; // Preview thumbnail
   questions: AdQuestion[];
-  totalReward: number; // Total reward for completing all questions
-  rewardPerQuestion: number; // Calculated: totalReward / questions.length
+  totalReward: number; // Total FOG coins reward for completing all questions (1 FOG = $0.10)
+  rewardPerQuestion: number; // FOG coins per question (calculated: totalReward / questions.length)
   isActive: boolean;
   isPaused: boolean;
   isOneTimePerUser: boolean; // If true, user can only watch once
@@ -36,7 +36,7 @@ export interface AdCreationData {
   previewImageFile?: File; // For upload
   questions: Omit<AdQuestion, 'id' | 'reward' | 'type'>[]; // Only 3 custom questions
   feedbackQuestionTitle: string; // Title for the 4th feedback question
-  totalReward: number;
+  totalReward: number; // FOG coins reward for completing the ad (1 FOG = $0.10)
   isOneTimePerUser: boolean;
   maxDailyViews: number;
 }
@@ -52,22 +52,22 @@ export interface UserAdInteraction {
     selectedAnswer: number;
     textAnswer?: string; // For feedback question
     isCorrect: boolean;
-    earnedReward: number;
+    earnedReward: number; // FOG coins earned for this question (1 FOG = $0.10)
   }[];
-  totalEarned: number;
+  totalEarned: number; // Total FOG coins earned from this ad (1 FOG = $0.10)
   isCompleted: boolean;
 }
 
 export interface UserAdStats {
   userId: string;
   totalAdsWatched: number;
-  totalEarnings: number;
-  totalEarned: number; // Alias for compatibility
+  totalEarnings: number; // Total FOG coins earned (1 FOG = $0.10)
+  totalEarned: number; // Alias for compatibility - FOG coins
   dailyWatchCount: number; // Resets daily
   todaysCount: number; // Alias for compatibility
   lastWatchDate: string; // ISO date string
-  availableBalance: number;
-  withdrawnAmount: number;
+  availableBalance: number; // Available FOG coins balance (1 FOG = $0.10)
+  withdrawnAmount: number; // FOG coins already withdrawn
 }
 
 export interface UserDailyActivity {
@@ -75,7 +75,7 @@ export interface UserDailyActivity {
   userId: string;
   date: string; // ISO date string (YYYY-MM-DD)
   adsWatched: number;
-  earningsToday: number;
+  earningsToday: number; // FOG coins earned today (1 FOG = $0.10)
   questionsAnswered: number;
   correctAnswers: number;
 }
@@ -86,7 +86,7 @@ export interface AdminAdStats {
   activeAds: number;
   pausedAds: number;
   totalViews: number;
-  totalRewardsPaid: number;
+  totalRewardsPaid: number; // Total FOG coins paid out (1 FOG = $0.10)
   averageCompletionRate: number;
 }
 
@@ -95,7 +95,9 @@ export interface AdFormState {
   title: string;
   description: string;
   videoFile: File | null;
+  videoUrl?: string; // For editing existing ads
   previewImageFile: File | null;
+  previewImageUrl?: string; // For editing existing ads
   questions: {
     question: string;
     options: string[];

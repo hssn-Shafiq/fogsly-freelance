@@ -6,7 +6,9 @@ import AdminDashboard from '../components/admin/AdminDashboard';
 import ThemeManagement from '../components/admin/ThemeManagement';
 import AdsManagement from '../components/admin/ads/AdsManagement';
 import CreateEditAdModal from '../components/admin/ads/CreateEditAdModal';
+import FogCoinManagement from '../components/admin/fogcoin/FogCoinManagement';
 import { AdminUser, AdminRoute } from '../firebase/types/admin';
+import { Ad } from '../firebase/types/ads';
 import { onAdminAuthStateChange } from '../firebase/services/adminAuthService';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -20,7 +22,7 @@ export default function AdminPage({ navigate }: AdminPageProps) {
   const [activeRoute, setActiveRoute] = useState<AdminRoute>('dashboard');
   // Ads modal state
   const [adModalOpen, setAdModalOpen] = useState(false);
-  const [editingAd, setEditingAd] = useState(null);
+  const [editingAd, setEditingAd] = useState<Ad | null>(null);
 
   useEffect(() => {
     // Listen for admin authentication state changes
@@ -57,11 +59,21 @@ export default function AdminPage({ navigate }: AdminPageProps) {
       case 'ads-management':
         return (
           <AdsManagement
-            onCreateNew={() => { setEditingAd(null); setAdModalOpen(true); }}
-            onEditAd={(ad) => { setEditingAd(ad); setAdModalOpen(true); }}
+            onCreateNew={() => { 
+              console.log('Creating new ad'); 
+              setEditingAd(null); 
+              setAdModalOpen(true); 
+            }}
+            onEditAd={(ad) => { 
+              console.log('Editing ad:', ad); 
+              setEditingAd(ad); 
+              setAdModalOpen(true); 
+            }}
             onViewAd={() => {}}
           />
         );
+      case 'fogcoin-management':
+        return <FogCoinManagement currentAdminId={currentAdmin.uid} />;
       case 'user-management':
         return (
           <div className="text-center py-12">
@@ -137,10 +149,18 @@ export default function AdminPage({ navigate }: AdminPageProps) {
         {activeRoute === 'ads-management' && (
           <CreateEditAdModal
             isOpen={adModalOpen}
-            onClose={() => setAdModalOpen(false)}
+            onClose={() => {
+              console.log('Closing modal');
+              setAdModalOpen(false);
+              setEditingAd(null); // Clear editing ad when closing
+            }}
             editingAd={editingAd}
             currentAdminId={currentAdmin.uid}
-            onSuccess={() => { setAdModalOpen(false); }}
+            onSuccess={() => { 
+              console.log('Ad save successful');
+              setAdModalOpen(false); 
+              setEditingAd(null);
+            }}
           />
         )}
       </AdminPanelLayout>

@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { User as FirebaseUser, UserProfile } from '../../firebase/types/user';
-import { getUserProfile, updateUserProfile } from '../../firebase/services/userService';
+import { getUserProfile, updateUserProfile, uploadAvatarImage, uploadCoverImage, updateUserAvatar, updateUserCover } from '../../firebase/services/userService';
 import { Tab, EditForm, ProfileState, ProfileActions } from './types';
+import { toast } from 'react-hot-toast';
 
 export const useProfileState = (currentUser: FirebaseUser | null) => {
   const [state, setState] = useState<ProfileState>({
@@ -119,11 +120,11 @@ export const useProfileState = (currentUser: FirebaseUser | null) => {
             phone: prev.userProfile?.phone || '',
             bio: prev.userProfile?.bio || '',
             skills: prev.userProfile?.skills || [],
-            social: prev.userProfile?.social || {
-              linkedin: '',
-              twitter: '',
-              dribbble: '',
-              github: ''
+            social: {
+              linkedin: prev.userProfile?.social?.linkedin || '',
+              twitter: prev.userProfile?.social?.twitter || '',
+              dribbble: prev.userProfile?.social?.dribbble || '',
+              github: prev.userProfile?.social?.github || ''
             }
           }
         }));
@@ -170,7 +171,53 @@ export const useProfileState = (currentUser: FirebaseUser | null) => {
         console.error('Error updating profile:', error);
         setState(prev => ({ ...prev, isSaving: false }));
       }
-    }, [currentUser?.uid, state.editForm])
+    }, [currentUser?.uid, state.editForm]),
+
+    handleAvatarUpload: useCallback(async (file: File) => {
+      if (!currentUser?.uid) return;
+
+      try {
+        setState(prev => ({ ...prev, isSaving: true }));
+        const avatarUrl = await uploadAvatarImage(file, currentUser.uid);
+        await updateUserAvatar(currentUser.uid, avatarUrl);
+        
+        // Update local state
+        setState(prev => ({
+          ...prev,
+          userProfile: prev.userProfile ? { ...prev.userProfile, avatarUrl } : null,
+          isSaving: false
+        }));
+        
+        toast.success('Avatar updated successfully!');
+      } catch (error) {
+        console.error('Error uploading avatar:', error);
+        toast.error('Failed to upload avatar. Please try again.');
+        setState(prev => ({ ...prev, isSaving: false }));
+      }
+    }, [currentUser?.uid]),
+
+    handleCoverUpload: useCallback(async (file: File) => {
+      if (!currentUser?.uid) return;
+
+      try {
+        setState(prev => ({ ...prev, isSaving: true }));
+        const coverUrl = await uploadCoverImage(file, currentUser.uid);
+        await updateUserCover(currentUser.uid, coverUrl);
+        
+        // Update local state
+        setState(prev => ({
+          ...prev,
+          userProfile: prev.userProfile ? { ...prev.userProfile, coverUrl } : null,
+          isSaving: false
+        }));
+        
+        toast.success('Cover image updated successfully!');
+      } catch (error) {
+        console.error('Error uploading cover image:', error);
+        toast.error('Failed to upload cover image. Please try again.');
+        setState(prev => ({ ...prev, isSaving: false }));
+      }
+    }, [currentUser?.uid])
   };
 
   // Fetch user profile on mount
@@ -192,14 +239,16 @@ export const useProfileState = (currentUser: FirebaseUser | null) => {
               editForm: {
                 name: profile.name || '',
                 role: profile.role || '',
-                location: profile.location || '',
+                city: profile.city || '',
+                country: profile.country || '',
+                phone: profile.phone || '',
                 bio: profile.bio || '',
                 skills: profile.skills || [],
-                social: profile.social || {
-                  linkedin: '',
-                  twitter: '',
-                  dribbble: '',
-                  github: ''
+                social: {
+                  linkedin: profile.social?.linkedin || '',
+                  twitter: profile.social?.twitter || '',
+                  dribbble: profile.social?.dribbble || '',
+                  github: profile.social?.github || ''
                 }
               },
               isFormInitialized: true

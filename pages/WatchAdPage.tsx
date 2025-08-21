@@ -167,6 +167,10 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
   };
 
   const handleWatchAd = (ad: Ad) => {
+    console.log('Opening ad for watching:', ad);
+    console.log('Ad video URL:', ad.videoUrl);
+    console.log('Ad preview image:', ad.previewImage);
+    
     setSelectedAd(ad);
     setPhase('video');
     setVideoEnded(false);
@@ -197,6 +201,12 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
   const handleVideoLoadedMetadata = () => {
     if (videoRef.current) {
       setVideoDuration(videoRef.current.duration);
+      console.log('Video metadata loaded, duration:', videoRef.current.duration);
+      // Auto play after metadata loads
+      videoRef.current.play().catch(error => {
+        console.log('Auto-play prevented by browser:', error);
+        // This is normal - browsers often prevent auto-play
+      });
     }
   };
 
@@ -318,23 +328,50 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
             {/* Video Section */}
             <div className="p-6">
               <div className="aspect-video bg-black rounded-lg overflow-hidden mb-4 relative">
-                {selectedAd.videoUrl && (selectedAd.videoUrl.endsWith('.mp4') || selectedAd.videoUrl.endsWith('.webm')) ? (
+                {selectedAd.videoUrl ? (
                   <>
                     <video
                       ref={videoRef}
                       src={selectedAd.videoUrl}
                       className="w-full h-full object-cover"
-                      autoPlay
+                      controls={false}
+                      preload="metadata"
                       onEnded={handleVideoEnded}
                       onTimeUpdate={handleVideoTimeUpdate}
                       onLoadedMetadata={handleVideoLoadedMetadata}
                       onPlay={handleVideoPlay}
                       onPause={handleVideoPause}
-                      onError={() => {
-                        toast.error('Error loading video');
+                      onLoadStart={() => console.log('Video load started')}
+                      onCanPlay={() => console.log('Video can play')}
+                      onError={(e) => {
+                        console.error('Video error:', e);
+                        console.log('Video URL:', selectedAd.videoUrl);
+                        const video = e.target as HTMLVideoElement;
+                        console.log('Video error details:', video.error);
+                        toast.error('Error loading video. Please try again.');
+                        // Set video ended to allow proceeding
                         setVideoEnded(true);
                       }}
                     />
+                    
+                    {/* Play Button Overlay */}
+                    {!isVideoPlaying && !videoEnded && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                        <Button
+                          onClick={() => {
+                            if (videoRef.current) {
+                              videoRef.current.play().catch(error => {
+                                console.error('Error playing video:', error);
+                                toast.error('Unable to play video automatically. Please check your media permissions.');
+                              });
+                            }
+                          }}
+                          className="bg-white/90 hover:bg-white text-black rounded-full p-4"
+                        >
+                          <Play className="w-8 h-8" />
+                        </Button>
+                      </div>
+                    )}
                     
                     {/* Video Controls Overlay */}
                     <div className="absolute bottom-4 left-4 right-4">
@@ -381,19 +418,14 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
                     </div>
                   </>
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <img 
-                      src={selectedAd.previewImage || selectedAd.videoUrl} 
-                      alt={selectedAd.title}
-                      className="max-w-full max-h-full object-contain"
-                      onLoad={() => {
-                        setTimeout(() => setVideoEnded(true), 10000);
-                      }}
-                      onError={() => {
-                        toast.error('Error loading image');
-                        setVideoEnded(true);
-                      }}
-                    />
+                  <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                    <div className="text-center">
+                      <Play className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-600">No video available</p>
+                      <Button onClick={() => setVideoEnded(true)} className="mt-4">
+                        Continue to Questions
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>

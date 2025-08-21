@@ -19,10 +19,11 @@ const ProfilePage = ({ navigate, currentUser }: ProfilePageProps) => {
 
   const handleNavigateHome = () => navigate('home');
   const handleToggleEdit = () => actions.setIsEditing(!state.isEditing);
+  const handleNavigateToSettings = () => actions.setActiveTab('settings');
 
   return (
     <div className="bg-[--color-bg-secondary] min-h-screen">
-      <div className="container mx-auto px-4 py-8 pt-24">
+      <div className="container mx-auto px-4 py-8 pt-4">
         
         {/* Loading State */}
         {state.isLoading ? (
@@ -38,6 +39,10 @@ const ProfilePage = ({ navigate, currentUser }: ProfilePageProps) => {
               isEditing={state.isEditing}
               onNavigateHome={handleNavigateHome}
               onToggleEdit={handleToggleEdit}
+              onNavigateToSettings={handleNavigateToSettings}
+              onAvatarUpload={actions.handleAvatarUpload}
+              onCoverUpload={actions.handleCoverUpload}
+              isSaving={state.isSaving}
             />
             
             {/* Main Content Grid */}

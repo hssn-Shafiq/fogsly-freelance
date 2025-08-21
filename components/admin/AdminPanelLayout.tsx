@@ -11,7 +11,8 @@ import {
   Menu,
   X,
   Shield,
-  PlayCircle
+  PlayCircle,
+  DollarSign
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { AdminUser, AdminRoute } from '../../firebase/types/admin';
@@ -44,6 +45,12 @@ const sidebarItems = [
     label: 'Ads Management', 
     icon: PlayCircle,
     permission: 'ads-management' 
+  },
+  { 
+    id: 'fogcoin-management' as AdminRoute, 
+    label: 'FOG Coin Management', 
+    icon: DollarSign,
+    permission: null 
   },
   { 
     id: 'user-management' as AdminRoute, 
