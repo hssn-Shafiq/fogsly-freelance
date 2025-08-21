@@ -52,7 +52,10 @@ const ProfilePage = ({ navigate, currentUser }: ProfilePageProps) => {
               {/* Right Content Area */}
               <main className="lg:col-span-8">
                 {/* Balance Cards */}
-                <ProfileBalanceCards />
+                <ProfileBalanceCards 
+                  currentUser={currentUser}
+                  navigate={navigate}
+                />
 
                 {/* Tabs Content */}
                 <ProfileTabContent

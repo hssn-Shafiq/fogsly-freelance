@@ -4,6 +4,8 @@ import AdminAuthPage from './AdminAuthPage';
 import AdminPanelLayout from '../components/admin/AdminPanelLayout';
 import AdminDashboard from '../components/admin/AdminDashboard';
 import ThemeManagement from '../components/admin/ThemeManagement';
+import AdsManagement from '../components/admin/ads/AdsManagement';
+import CreateEditAdModal from '../components/admin/ads/CreateEditAdModal';
 import { AdminUser, AdminRoute } from '../firebase/types/admin';
 import { onAdminAuthStateChange } from '../firebase/services/adminAuthService';
 import 'react-toastify/dist/ReactToastify.css';
@@ -16,6 +18,9 @@ export default function AdminPage({ navigate }: AdminPageProps) {
   const [currentAdmin, setCurrentAdmin] = useState<AdminUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeRoute, setActiveRoute] = useState<AdminRoute>('dashboard');
+  // Ads modal state
+  const [adModalOpen, setAdModalOpen] = useState(false);
+  const [editingAd, setEditingAd] = useState(null);
 
   useEffect(() => {
     // Listen for admin authentication state changes
@@ -47,10 +52,16 @@ export default function AdminPage({ navigate }: AdminPageProps) {
     switch (activeRoute) {
       case 'dashboard':
         return <AdminDashboard currentAdmin={currentAdmin} />;
-      
       case 'theme-management':
         return <ThemeManagement currentAdminId={currentAdmin.uid} />;
-      
+      case 'ads-management':
+        return (
+          <AdsManagement
+            onCreateNew={() => { setEditingAd(null); setAdModalOpen(true); }}
+            onEditAd={(ad) => { setEditingAd(ad); setAdModalOpen(true); }}
+            onViewAd={() => {}}
+          />
+        );
       case 'user-management':
         return (
           <div className="text-center py-12">
@@ -58,7 +69,6 @@ export default function AdminPage({ navigate }: AdminPageProps) {
             <p className="text-[--color-text-secondary]">Coming soon...</p>
           </div>
         );
-      
       case 'content-management':
         return (
           <div className="text-center py-12">
@@ -66,7 +76,6 @@ export default function AdminPage({ navigate }: AdminPageProps) {
             <p className="text-[--color-text-secondary]">Coming soon...</p>
           </div>
         );
-      
       case 'analytics':
         return (
           <div className="text-center py-12">
@@ -74,7 +83,6 @@ export default function AdminPage({ navigate }: AdminPageProps) {
             <p className="text-[--color-text-secondary]">Coming soon...</p>
           </div>
         );
-      
       case 'settings':
         return (
           <div className="text-center py-12">
@@ -82,7 +90,6 @@ export default function AdminPage({ navigate }: AdminPageProps) {
             <p className="text-[--color-text-secondary]">Coming soon...</p>
           </div>
         );
-      
       default:
         return <AdminDashboard currentAdmin={currentAdmin} />;
     }
@@ -126,8 +133,17 @@ export default function AdminPage({ navigate }: AdminPageProps) {
         onLogout={handleAdminLogout}
       >
         {pageContent}
+        {/* Ad Create/Edit Modal */}
+        {activeRoute === 'ads-management' && (
+          <CreateEditAdModal
+            isOpen={adModalOpen}
+            onClose={() => setAdModalOpen(false)}
+            editingAd={editingAd}
+            currentAdminId={currentAdmin.uid}
+            onSuccess={() => { setAdModalOpen(false); }}
+          />
+        )}
       </AdminPanelLayout>
-      
       <ToastContainer
         position="top-right"
         autoClose={5000}

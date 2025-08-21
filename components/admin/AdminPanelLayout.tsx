@@ -10,7 +10,8 @@ import {
   LogOut,
   Menu,
   X,
-  Shield
+  Shield,
+  PlayCircle
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { AdminUser, AdminRoute } from '../../firebase/types/admin';
@@ -37,6 +38,12 @@ const sidebarItems = [
     label: 'Theme Management', 
     icon: Palette,
     permission: 'theme-management' 
+  },
+  { 
+    id: 'ads-management' as AdminRoute, 
+    label: 'Ads Management', 
+    icon: PlayCircle,
+    permission: 'ads-management' 
   },
   { 
     id: 'user-management' as AdminRoute, 
@@ -73,11 +80,7 @@ export default function AdminPanelLayout({
 }: AdminPanelLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const hasPermission = (permission: string | null): boolean => {
-    if (!permission) return true; // No permission required
-    if (currentAdmin.role === 'super-admin') return true; // Super admin has all permissions
-    return currentAdmin.permissions.includes(permission as any);
-  };
+
 
   const handleLogout = async () => {
     try {
@@ -127,11 +130,7 @@ export default function AdminPanelLayout({
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-2">
         {sidebarItems.map((item) => {
-          const hasAccess = hasPermission(item.permission);
           const isActive = activeRoute === item.id;
-          
-          if (!hasAccess) return null;
-
           return (
             <motion.button
               key={item.id}

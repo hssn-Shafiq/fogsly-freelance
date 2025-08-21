@@ -8,7 +8,7 @@ import Footer from './components/Footer';
 import ProfilePage from './pages/ProfilePage';
 import DashboardPage from './pages/DashboardPage';
 import EventsPage from './pages/EventsPage';
-import WatchAdsPage from './pages/WatchAdsPage';
+// import WatchAdsPage from './pages/WatchAdsPage';
 import PricingPage from './pages/PricingPage';
 import AboutPage from './pages/AboutPage';
 import CareersPage from './pages/CareersPage';
@@ -26,6 +26,7 @@ import CustomerServicePage from './pages/CustomerServicePage';
 import AdminPage from './pages/AdminPage';
 import { onAuthStateChange, signOutUser } from './firebase/services/authService';
 import { User } from './firebase/types/user';
+import WatchAdPage from './pages/WatchAdPage';
 
 // Helper function to get route from URL
 const getRouteFromPath = (pathname: string): Route => {
@@ -136,7 +137,7 @@ export default function App() {
       case 'dashboard': return isLoggedIn ? <DashboardPage /> : <AuthPage navigate={navigate} onLogin={handleLogin} />;
       case 'profile': return isLoggedIn ? <ProfilePage navigate={navigate} currentUser={currentUser} /> : <AuthPage navigate={navigate} onLogin={handleLogin} />;
       case 'events': return <EventsPage />;
-      case 'watch-ads': return <WatchAdsPage />;
+      case 'watch-ads': return <WatchAdPage navigate={navigate} />;
       case 'pricing': return <PricingPage />;
       case 'about': return <AboutPage />;
       case 'careers': return <CareersPage />;

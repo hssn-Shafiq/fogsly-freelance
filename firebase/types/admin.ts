@@ -14,6 +14,7 @@ export type AdminPermission =
   | 'theme-management'
   | 'user-management' 
   | 'content-management'
+  | 'ads-management'
   | 'analytics-view'
   | 'system-settings';
 
@@ -55,6 +56,7 @@ export type AdminRoute =
   | 'theme-management'
   | 'user-management'
   | 'content-management'
+  | 'ads-management'
   | 'analytics'
   | 'settings';
 

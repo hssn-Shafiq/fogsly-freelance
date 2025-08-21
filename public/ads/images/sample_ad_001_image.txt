@@ -1,0 +1,11 @@
+# Sample Ad Placeholder Image
+
+This is a placeholder file representing a sample ad image.
+In a real implementation, this would be an actual image file (JPG, PNG, WebP, etc.).
+
+File: sample_ad_001_image.jpg
+Dimensions: 1200x630
+Format: JPEG
+Quality: 85%
+
+Content: Sample banner advertisement for cloud security solutions with modern design and branding.

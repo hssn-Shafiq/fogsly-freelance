@@ -23,15 +23,18 @@ export interface UserData {
 export interface UserProfile {
   userId: string;
   name: string;
+  displayName?: string; // For ad personalization
   email: string;
   role?: string;
   city?: string;
   country?: string;
   phone?: string;
   location?: string; // (legacy, for migration)
+  age?: number; // For ad personalization
   bio?: string;
   avatarUrl?: string;
   coverUrl?: string;
+  balance?: number; // FOG coins balance
   skills?: string[];
   social?: {
     linkedin?: string;

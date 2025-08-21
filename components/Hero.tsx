@@ -6,7 +6,7 @@ import { type Route } from '../types';
 
 const Hero = ({ navigate }: { navigate: (route: Route) => void }) => {
   return (
-    <section className="relative overflow-hidden pt-24">
+    <section className="relative overflow-hidden pt-4">
       <div className="absolute inset-0 bg-gradient-to-r from-[--color-primary]/10 to-[--color-accent]/10 -skew-y-3 transform origin-top-left"></div>
       <div className=" container mx-auto  px-8 pt-0 md:pt-0 pb-14 relative z-10">
         <div className="max-w-7xl bg-[--color-bg-hero] rounded-3xl shadow-2xl mt-0 mx-auto py-10 text-center">

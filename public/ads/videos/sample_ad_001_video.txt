@@ -1,0 +1,11 @@
+# Sample Ad Placeholder Video
+
+This is a placeholder file representing a sample ad video.
+In a real implementation, this would be an actual video file (MP4, WebM, etc.).
+
+File: sample_ad_001_video.mp4
+Duration: 30 seconds
+Resolution: 1920x1080
+Format: MP4
+
+Content: Sample technology advertisement about cloud security solutions.
