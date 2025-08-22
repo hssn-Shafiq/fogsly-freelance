@@ -1,5 +1,11 @@
 // Types for the ads system
 
+export interface UserContactDetails {
+  email: string;
+  phone?: string;
+  address?: string;
+}
+
 export interface AdQuestion {
   id: string;
   question: string;
@@ -56,6 +62,7 @@ export interface UserAdInteraction {
   }[];
   totalEarned: number; // Total FOG coins earned from this ad (1 FOG = $0.10)
   isCompleted: boolean;
+  userDetails?: UserContactDetails; // User contact details submitted with ad completion
 }
 
 export interface UserAdStats {

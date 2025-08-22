@@ -22,7 +22,8 @@ import {
   UserAdInteraction, 
   UserAdStats, 
   UserDailyActivity,
-  AdQuestion 
+  AdQuestion,
+  UserContactDetails
 } from '../types/ads';
 
 // Collection names
@@ -230,7 +231,12 @@ export const getAdById = async (adId: string): Promise<Ad | null> => {
  * User Functions - Watch Ads and Submit Answers
  */
 
-export const watchAd = async (userId: string, adId: string, answers: { questionId: string; selectedAnswer?: number; textAnswer?: string; }[]): Promise<{ earnedAmount: number; interactionId: string; }> => {
+export const watchAd = async (
+  userId: string, 
+  adId: string, 
+  answers: { questionId: string; selectedAnswer?: number; textAnswer?: string; }[],
+  userDetails?: { email: string; phone?: string; address?: string; }
+): Promise<{ earnedAmount: number; interactionId: string; }> => {
   try {
     // Start the interaction
     const interactionId = await startAdInteraction(userId, adId);
@@ -279,7 +285,7 @@ export const watchAd = async (userId: string, adId: string, answers: { questionI
     }
     
     // Complete the interaction
-    await completeAdInteraction(interactionId);
+    await completeAdInteraction(interactionId, userDetails);
     
     // Update user stats
     await updateUserAdStats(userId, totalEarned);
@@ -454,7 +460,10 @@ export const submitAdAnswer = async (
   }
 };
 
-export const completeAdInteraction = async (interactionId: string): Promise<void> => {
+export const completeAdInteraction = async (
+  interactionId: string, 
+  userDetails?: { email: string; phone?: string; address?: string; }
+): Promise<void> => {
   try {
     const interactionRef = doc(db, USER_AD_INTERACTIONS_COLLECTION, interactionId);
     const interactionDoc = await getDoc(interactionRef);
@@ -466,10 +475,17 @@ export const completeAdInteraction = async (interactionId: string): Promise<void
     const interaction = interactionDoc.data() as UserAdInteraction;
     
     // Mark interaction as completed
-    await updateDoc(interactionRef, {
+    const updateData: any = {
       completedAt: new Date(),
       isCompleted: true
-    });
+    };
+    
+    // Add user details if provided
+    if (userDetails) {
+      updateData.userDetails = userDetails;
+    }
+    
+    await updateDoc(interactionRef, updateData);
     
     // Update ad completion count
     const adRef = doc(db, ADS_COLLECTION, interaction.adId);

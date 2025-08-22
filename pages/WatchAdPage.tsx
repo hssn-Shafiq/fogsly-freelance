@@ -252,7 +252,16 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
 
     setIsSubmitting(true);
     try {
-      const result = await watchAd(user.uid, selectedAd.id, answers);
+      // Prepare user contact details
+      const userDetails = {
+        email: userProfile?.email || user.email || '',
+        phone: userProfile?.phone || undefined,
+        address: userProfile?.city && userProfile?.country 
+          ? `${userProfile.city}, ${userProfile.country}` 
+          : undefined
+      };
+
+      const result = await watchAd(user.uid, selectedAd.id, answers, userDetails);
       setEarnedAmount(result.earnedAmount);
       setPhase('thankyou');
       toast.success(`Great! You earned ${result.earnedAmount} FOG coins!`);
@@ -520,15 +529,66 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
               )}
 
               {currentQuestion.type === 'feedback' && (
-                <div className="mb-6">
-                  <Textarea
-                    value={currentAnswer?.textAnswer || ''}
-                    onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value, true)}
-                    placeholder="Please provide your feedback..."
-                    className="w-full min-h-[100px]"
-                    maxLength={500}
-                  />
-                </div>
+                <>
+                  <div className="mb-6">
+                    <Textarea
+                      value={currentAnswer?.textAnswer || ''}
+                      onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value, true)}
+                      placeholder="Please provide your feedback..."
+                      className="w-full min-h-[100px]"
+                      maxLength={500}
+                    />
+                  </div>
+
+                  {/* User Details Section - Only show on feedback question */}
+                  <div className="mb-6 p-4 bg-[--color-bg-secondary] rounded-lg border">
+                    <h4 className="text-md font-semibold text-[--color-text-primary] mb-4">
+                      Contact Information (Required for Ad Completion)
+                    </h4>
+                    <div className="space-y-3">
+                      {/* Email */}
+                      <div className="flex items-center space-x-3">
+                        <div className="w-5 h-5 bg-[--color-primary] rounded flex items-center justify-center">
+                          <Check className="w-3 h-3 text-white" />
+                        </div>
+                        <span className="text-sm font-medium text-[--color-text-secondary]">Share email:</span>
+                        <span className="text-sm text-[--color-text-primary]">
+                          {userProfile?.email || user?.email || 'N/A'}
+                        </span>
+                      </div>
+                      
+                      {/* Phone */}
+                      <div className="flex items-center space-x-3">
+                        <div className="w-5 h-5 bg-[--color-primary] rounded flex items-center justify-center">
+                          <Check className="w-3 h-3 text-white" />
+                        </div>
+                        <span className="text-sm font-medium text-[--color-text-secondary]">Share phone:</span>
+                        <span className="text-sm text-[--color-text-primary]">
+                          {userProfile?.phone || 'Please update your phone in profile settings'}
+                        </span>
+                      </div>
+                      
+                      {/* Address */}
+                      <div className="flex items-center space-x-3">
+                        <div className="w-5 h-5 bg-[--color-primary] rounded flex items-center justify-center">
+                          <Check className="w-3 h-3 text-white" />
+                        </div>
+                        <span className="text-sm font-medium text-[--color-text-secondary]">Share address:</span>
+                        <span className="text-sm text-[--color-text-primary]">
+                          {userProfile?.city && userProfile?.country 
+                            ? `${userProfile.city}, ${userProfile.country}` 
+                            : 'Please update your address in profile settings'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-xs text-blue-700">
+                        <strong>Note:</strong> This information will be shared with the advertiser to help them understand their audience and improve their services. Your privacy is important to us.
+                      </p>
+                    </div>
+                  </div>
+                </>
               )}
 
               {/* Next Button */}

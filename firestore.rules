@@ -46,6 +46,36 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
     
+    // Ads collection - users can read active ads, admins can manage all
+    match /ads/{adId} {
+      allow read: if isAuthenticated() && resource.data.isActive == true && resource.data.isPaused == false;
+      allow read, write: if isAdmin();
+    }
+    
+    // User ad interactions - users can only access their own data
+    match /userAdInteractions/{interactionId} {
+      allow read, write: if isAuthenticated() && isOwner(resource.data.userId);
+      allow read: if isAdmin(); // Admins can read all interactions
+    }
+    
+    // User ad stats - users can only access their own stats
+    match /userAdStats/{userId} {
+      allow read, write: if isAuthenticated() && isOwner(userId);
+      allow read: if isAdmin(); // Admins can read all stats
+    }
+    
+    // User daily activities - users can only access their own activities
+    match /userDailyActivities/{activityId} {
+      allow read, write: if isAuthenticated() && isOwner(resource.data.userId);
+      allow read: if isAdmin(); // Admins can read all activities
+    }
+    
+    // FOG coin settings - read by all authenticated users, write by admins only
+    match /fogCoinSettings/{settingId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
     // Default rule - deny all access to any other collections
     match /{document=**} {
       allow read, write: if false;
