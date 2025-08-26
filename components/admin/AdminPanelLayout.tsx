@@ -12,7 +12,9 @@ import {
   X,
   Shield,
   PlayCircle,
-  DollarSign
+  DollarSign,
+  CreditCard,
+  Building
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { AdminUser, AdminRoute } from '../../firebase/types/admin';
@@ -51,6 +53,18 @@ const sidebarItems = [
     label: 'FOG Coin Management', 
     icon: DollarSign,
     permission: null 
+  },
+  { 
+    id: 'payment-management' as AdminRoute, 
+    label: 'Payment Requests', 
+    icon: CreditCard,
+    permission: 'payment-management' 
+  },
+  { 
+    id: 'payment-methods' as AdminRoute, 
+    label: 'Payment Methods', 
+    icon: Building,
+    permission: 'payment-management' 
   },
   { 
     id: 'user-management' as AdminRoute, 

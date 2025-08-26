@@ -12,6 +12,9 @@ import {
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from "../config";
 import { UserData, UserProfile } from "../types/user";
+import { createUserWallet } from './walletService';
+import { initializeUserEarnings } from './earningsService';
+import { getNextUserRank, createUserRanking } from './rankingService';
 
 // Collections
 const USERS_COLLECTION = "users";
@@ -43,7 +46,7 @@ export const createUserData = async (userData: Omit<UserData, 'createdAt' | 'upd
  */
 export const createUserProfile = async (profileData: Omit<UserProfile, 'createdAt' | 'updatedAt'>): Promise<void> => {
   try {
-    const profileRef = doc(db, USER_PROFILES_COLLECTION, profileData.userId);
+    const profileRef = doc(db, USER_PROFILES_COLLECTION, profileData.uid);
     
     await setDoc(profileRef, {
       ...profileData,
@@ -128,7 +131,7 @@ export const updateUserData = async (uid: string, updates: Partial<Omit<UserData
 /**
  * Update user profile
  */
-export const updateUserProfile = async (userId: string, updates: Partial<Omit<UserProfile, 'userId' | 'createdAt' | 'updatedAt'>>): Promise<void> => {
+export const updateUserProfile = async (userId: string, updates: Partial<Omit<UserProfile, 'uid' | 'createdAt' | 'updatedAt'>>): Promise<void> => {
   try {
     const profileRef = doc(db, USER_PROFILES_COLLECTION, userId);
     
@@ -161,29 +164,43 @@ export const checkUserExistsByEmail = async (email: string): Promise<boolean> =>
 };
 
 /**
- * Complete user setup (create both user data and profile)
+ * Complete user setup (create both user data and profile) with ranking
  */
 export const setupNewUser = async (uid: string, email: string, name: string): Promise<void> => {
   try {
-    // Create user data
+    // Get the next user rank atomically
+    const userRank = await getNextUserRank();
+    
+    // Create user data with rank
     await createUserData({
       uid,
       email,
       name,
       status: 'active',
-      role: 'user' // Default role for new users (admin can change this later)
+      role: 'user', // Default role for new users (admin can change this later)
+      rank: userRank
     });
     
-    // Create user profile
+    // Create user profile with rank
     await createUserProfile({
-      userId: uid,
+      uid, // Changed from userId to uid to match interface
       name,
       email,
       role: 'User', // Default display role for profile
-      bio: `Hello! I'm ${name}. Welcome to my profile.`
+      bio: `Hello! I'm ${name}. Welcome to my profile.`,
+      rank: userRank
     });
     
-    console.log("New user setup completed successfully");
+    // Create user ranking record
+    await createUserRanking(uid, userRank, email, name);
+    
+    // Create user wallet with QR code
+    await createUserWallet(uid, name, email);
+    
+    // Initialize user earnings tracking
+    await initializeUserEarnings(uid);
+    
+    console.log(`New user setup completed successfully - ${name} is rank #${userRank}`);
   } catch (error) {
     console.error("Error setting up new user:", error);
     throw error;

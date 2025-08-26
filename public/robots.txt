@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+
+# Disallow private/authenticated pages
+Disallow: /dashboard
+Disallow: /profile
+Disallow: /earnings-dashboard
+Disallow: /watch-ads
+Disallow: /chat
+Disallow: /admin
+
+# Sitemap location
+Sitemap: https://yourwebsite.com/sitemap.xml
+
+# Crawl delay (optional - adjust as needed)
+Crawl-delay: 1

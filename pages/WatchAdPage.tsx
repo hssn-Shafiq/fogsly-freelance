@@ -661,7 +661,9 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-[--color-text-primary]">Watch Ads & Earn</h1>
-              <p className="text-[--color-text-secondary] mt-1">Complete ads and answer questions to earn FOG coins</p>
+              {/* <p className="text-[--color-text-secondary] mt-1">Complete ads and answer questions to earn FOG coins</p> */}
+              <p className="text-[--color-text-secondary] mt-1">Comin soon..</p>
+
             </div>
           </div>
         </div>
@@ -669,7 +671,7 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
 
       {/* Stats Cards */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
@@ -725,12 +727,12 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
               </div>
             </CardContent>
           </Card>
-        </div>
+        </div> */}
 
         {/* Available Ads */}
-        <div className="mb-8">
+        {/* <div className="mb-8">
           <h2 className="text-2xl font-bold text-[--color-text-primary] mb-6">Available Ads</h2>
-          
+
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
@@ -764,7 +766,7 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
               ))}
             </div>
           )}
-        </div>
+        </div> */}
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import AuthPage from './pages/AuthPage';
 import Footer from './components/Footer';
 import ProfilePage from './pages/ProfilePage';
 import DashboardPage from './pages/DashboardPage';
+import { EarningsDashboardPage } from './pages/EarningsDashboardPage';
 import EventsPage from './pages/EventsPage';
 // import WatchAdsPage from './pages/WatchAdsPage';
 import PricingPage from './pages/PricingPage';
@@ -27,16 +28,20 @@ import AdminPage from './pages/AdminPage';
 import { onAuthStateChange, signOutUser } from './firebase/services/authService';
 import { User } from './firebase/types/user';
 import WatchAdPage from './pages/WatchAdPage';
-
+import AdAnalyticsPage from './pages/admin/AdAnalyticsPage'; 
 // Helper function to get route from URL
 const getRouteFromPath = (pathname: string): Route => {
   const path = pathname.replace('/', '') || 'home';
   
+   // Handle admin sub-routes
+  if (path.startsWith('admin/ad-analytics/')) {
+    return 'admin/ad-analytics';
+  }
   const validRoutes: Route[] = [
-    'home', 'fog-coins', 'auth', 'dashboard', 'profile', 'events', 
-    'watch-ads', 'pricing', 'about', 'careers', 'press', 'blog', 
+    'home', 'fog-coins', 'auth', 'dashboard', 'profile', 'earnings-dashboard',
+    'events', 'watch-ads', 'pricing', 'about', 'careers', 'press', 'blog', 
     'features', 'api', 'help-center', 'community', 'privacy-policy', 
-    'terms', 'chat', 'customer-service', 'admin'
+    'terms', 'chat', 'customer-service', 'admin', 'admin/ad-analytics'
   ];
   
   return validRoutes.includes(path as Route) ? (path as Route) : 'home';
@@ -93,14 +98,17 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  const navigate = (newRoute: Route) => {
-    setRoute(newRoute);
+  const navigate = (newRoute: Route | string) => {
+    // Handle navigation with parameters
+    if (typeof newRoute === 'string' && newRoute.startsWith('admin/ad-analytics/')) {
+      // Update URL for dynamic route
+      window.history.pushState(null, '', `/${newRoute}`);
+      setRoute('admin/ad-analytics');
+      return;
+    }
     
-    // Update browser URL
-    const path = newRoute === 'home' ? '/' : `/${newRoute}`;
-    window.history.pushState(null, '', path);
-    
-    window.scrollTo(0, 0); // Scroll to top on page change
+    setRoute(newRoute as Route);
+    window.history.pushState(null, '', newRoute === 'home' ? '/' : `/${newRoute}`);
   };
 
   const handleLogin = () => {
@@ -118,7 +126,7 @@ export default function App() {
     }
   };
 
-  const showHeaderAndFooter = route !== 'auth' && route !== 'admin' && !(route === 'dashboard' && !isLoggedIn) && !(route === 'profile' && !isLoggedIn);
+  const showHeaderAndFooter = route !== 'auth' && route !== 'admin' && !(route === 'dashboard' && !isLoggedIn) && !(route === 'profile' && !isLoggedIn) && !(route === 'earnings-dashboard' && !isLoggedIn);
 
   const renderContent = () => {
     // Show loading spinner while checking auth state
@@ -136,6 +144,7 @@ export default function App() {
       case 'auth': return <AuthPage navigate={navigate} onLogin={handleLogin} />;
       case 'dashboard': return isLoggedIn ? <DashboardPage /> : <AuthPage navigate={navigate} onLogin={handleLogin} />;
       case 'profile': return isLoggedIn ? <ProfilePage navigate={navigate} currentUser={currentUser} /> : <AuthPage navigate={navigate} onLogin={handleLogin} />;
+      case 'earnings-dashboard': return isLoggedIn ? <EarningsDashboardPage /> : <AuthPage navigate={navigate} onLogin={handleLogin} />;
       case 'events': return <EventsPage />;
       case 'watch-ads': return <WatchAdPage navigate={navigate} />;
       case 'pricing': return <PricingPage />;
@@ -152,6 +161,12 @@ export default function App() {
       case 'chat': return <ChatPage />;
       case 'customer-service': return <CustomerServicePage />;
       case 'admin': return <AdminPage navigate={navigate} />;
+     case 'admin/ad-analytics': {
+        // Extract ad ID from current URL
+        const currentPath = window.location.pathname;
+        const adId = currentPath.split('/').pop();
+        return <AdAnalyticsPage navigate={navigate} adId={adId} />;
+      }
       default: return <HomePage navigate={navigate} />;
     }
   };
@@ -165,6 +180,7 @@ export default function App() {
           navigate={navigate}
           isLoggedIn={isLoggedIn}
           onLogout={handleLogout}
+          currentUser={currentUser}
         />
       )}
       <main className="flex-1">

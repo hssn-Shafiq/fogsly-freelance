@@ -7,6 +7,8 @@ import ThemeManagement from '../components/admin/ThemeManagement';
 import AdsManagement from '../components/admin/ads/AdsManagement';
 import CreateEditAdModal from '../components/admin/ads/CreateEditAdModal';
 import FogCoinManagement from '../components/admin/fogcoin/FogCoinManagement';
+import PaymentManagementPage from './admin/PaymentManagementPage';
+import PaymentMethodsPage from './admin/PaymentMethodsPage';
 import { AdminUser, AdminRoute } from '../firebase/types/admin';
 import { Ad } from '../firebase/types/ads';
 import { onAdminAuthStateChange } from '../firebase/services/adminAuthService';
@@ -70,10 +72,15 @@ export default function AdminPage({ navigate }: AdminPageProps) {
               setAdModalOpen(true); 
             }}
             onViewAd={() => {}}
+            navigate={navigate}
           />
         );
       case 'fogcoin-management':
         return <FogCoinManagement currentAdminId={currentAdmin.uid} />;
+      case 'payment-management':
+        return <PaymentManagementPage navigate={(route) => navigate(route as string)} />;
+      case 'payment-methods':
+        return <PaymentMethodsPage navigate={(route) => navigate(route as string)} />;
       case 'user-management':
         return (
           <div className="text-center py-12">

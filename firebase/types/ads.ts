@@ -4,6 +4,7 @@ export interface UserContactDetails {
   email: string;
   phone?: string;
   address?: string;
+  
 }
 
 export interface AdQuestion {
@@ -24,10 +25,9 @@ export interface Ad {
   questions: AdQuestion[];
   totalReward: number; // Total FOG coins reward for completing all questions (1 FOG = $0.10)
   rewardPerQuestion: number; // FOG coins per question (calculated: totalReward / questions.length)
+  companyName: string; // Add this field
   isActive: boolean;
   isPaused: boolean;
-  isOneTimePerUser: boolean; // If true, user can only watch once
-  maxDailyViews: number; // Max times a user can watch per day (if not one-time)
   createdBy: string; // Admin ID
   createdAt: Date;
   updatedAt: Date;
@@ -38,13 +38,13 @@ export interface Ad {
 export interface AdCreationData {
   title: string;
   description: string;
+  companyName: string; // Add this field
   videoFile?: File; // For upload
   previewImageFile?: File; // For upload
   questions: Omit<AdQuestion, 'id' | 'reward' | 'type'>[]; // Only 3 custom questions
   feedbackQuestionTitle: string; // Title for the 4th feedback question
   totalReward: number; // FOG coins reward for completing the ad (1 FOG = $0.10)
-  isOneTimePerUser: boolean;
-  maxDailyViews: number;
+
 }
 
 export interface UserAdInteraction {
@@ -65,16 +65,44 @@ export interface UserAdInteraction {
   userDetails?: UserContactDetails; // User contact details submitted with ad completion
 }
 
+// ✅ NEW: Centralized user earnings collection with 3 earning sources
+export interface UserEarning {
+  id: string; // userId
+  userId: string;
+  
+  // Total earnings breakdown
+  totalEarnings: number; // Total FOG coins earned from all sources (1 FOG = $0.10)
+  availableBalance: number; // Available FOG coins balance for transfers/withdrawals (1 FOG = $0.10)
+  
+  // Earning sources (only 3 sources)
+  adsEarnings: number; // FOG coins earned from watching ads (transferable, gets deducted on wallet transfer)
+  totalAdsEarnings: number; // Total lifetime FOG coins earned from ads (static, never deducted)
+  depositEarnings: number; // FOG coins deposited/purchased by user
+  referralEarnings: number; // FOG coins earned from referrals
+  
+  // Wallet integration
+  walletAddress: string; // User's unique wallet address for transfers
+  
+  // Transfer tracking
+  totalSent: number; // Total FOG coins sent to other users
+  totalReceived: number; // Total FOG coins received from other users
+  
+  // Withdrawal tracking
+  withdrawnAmount: number; // FOG coins already withdrawn to external accounts
+  
+  // Timestamps
+  lastUpdatedAt: Date;
+  createdAt: Date;
+}
+
 export interface UserAdStats {
   userId: string;
   totalAdsWatched: number;
-  totalEarnings: number; // Total FOG coins earned (1 FOG = $0.10)
-  totalEarned: number; // Alias for compatibility - FOG coins
   dailyWatchCount: number; // Resets daily
   todaysCount: number; // Alias for compatibility
   lastWatchDate: string; // ISO date string
-  availableBalance: number; // Available FOG coins balance (1 FOG = $0.10)
-  withdrawnAmount: number; // FOG coins already withdrawn
+  createdAt: Date;
+  lastUpdatedAt: Date;
 }
 
 export interface UserDailyActivity {
@@ -101,6 +129,7 @@ export interface AdminAdStats {
 export interface AdFormState {
   title: string;
   description: string;
+  companyName: string; // Add this field
   videoFile: File | null;
   videoUrl?: string; // For editing existing ads
   previewImageFile: File | null;
@@ -115,8 +144,6 @@ export interface AdFormState {
     question: string;
   }; // The 4th feedback question
   totalReward: number;
-  isOneTimePerUser: boolean;
-  maxDailyViews: number;
 }
 
 export type AdFormErrors = Partial<Record<keyof AdFormState, string>> & {

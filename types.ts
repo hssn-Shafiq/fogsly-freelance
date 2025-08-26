@@ -6,6 +6,7 @@ export type Route =
   | 'auth' 
   | 'dashboard' 
   | 'profile'
+  | 'earnings-dashboard'
   | 'events'
   | 'watch-ads'
   | 'pricing'
@@ -21,4 +22,5 @@ export type Route =
   | 'terms'
   | 'chat'
   | 'customer-service'
-  | 'admin';
+  | 'admin'
+  | 'admin/ad-analytics';

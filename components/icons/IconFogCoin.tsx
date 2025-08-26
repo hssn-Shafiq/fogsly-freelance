@@ -1,7 +1,11 @@
 import React from 'react';
 
-const IconFogCoin = () => (
-  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+interface IconFogCoinProps {
+  className?: string;
+}
+
+const IconFogCoin: React.FC<IconFogCoinProps> = ({ className = "w-6 h-6" }) => (
+  <svg className={className} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect width="48" height="48" rx="12" fill="#FEF3C7"/>
     <circle cx="24" cy="24" r="12" fill="#FBBF24"/>
     <circle cx="24" cy="24" r="8" fill="#F59E0B"/>

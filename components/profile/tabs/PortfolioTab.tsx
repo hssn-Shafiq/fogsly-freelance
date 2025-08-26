@@ -11,12 +11,18 @@ interface PortfolioTabProps {
 }
 
 const PortfolioTab = React.memo(({ userProfile, currentUser, onTabChange }: PortfolioTabProps) => {
-  const portfolioData = userProfile?.portfolio || staticPortfolio;
+  // const portfolioData = userProfile?.portfolio || staticPortfolio;
 
   return (
     <div>
-      {portfolioData.length > 0 ? (
+      {/* {portfolioData.length > 0 ? (
         <div className="grid sm:grid-cols-2 gap-6">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold mb-4">Your Portfolio</h1>
+            <p className="text-lg text-[--color-text-secondary]">
+              Showcase your work and skills to potential clients.
+            </p>
+          </div>
           {portfolioData.map(item => (
             <Card key={item.id} className="overflow-hidden group transition-all hover:shadow-xl hover:-translate-y-1">
               <div className="aspect-video overflow-hidden">
@@ -32,6 +38,7 @@ const PortfolioTab = React.memo(({ userProfile, currentUser, onTabChange }: Port
               </CardContent>
             </Card>
           ))}
+
         </div>
       ) : (
         <div className="text-center py-8">
@@ -44,7 +51,14 @@ const PortfolioTab = React.memo(({ userProfile, currentUser, onTabChange }: Port
             Add Portfolio Items
           </Button>
         </div>
-      )}
+      )} */}
+
+      <div className="text-center mb-8">
+        {/* <h1 className="text-4xl font-bold mb-4">Your Portfolio</h1> */}
+        <p className="text-lg text-[--color-text-secondary]">
+          Showcase your work and skills to potential clients. Coming soon..
+        </p>
+      </div>
     </div>
   );
 });

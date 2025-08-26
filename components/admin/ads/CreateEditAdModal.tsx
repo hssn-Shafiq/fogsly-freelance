@@ -1,16 +1,17 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  X, 
-  Upload, 
-  Plus, 
-  Trash2, 
-  Save, 
-  Eye, 
+import {
+  X,
+  Upload,
+  Plus,
+  Trash2,
+  Save,
+  Eye,
   AlertCircle,
   Video,
   Image as ImageIcon,
-  HelpCircle
+  HelpCircle,
+  Building2
 } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/Card';
@@ -42,6 +43,7 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
   const [formState, setFormState] = useState<AdFormState>({
     title: '',
     description: '',
+    companyName: '', // Add company name field
     videoFile: null,
     videoUrl: '',
     previewImageFile: null,
@@ -55,9 +57,7 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
       title: 'User Feedback',
       question: 'How would you rate this ad based on your interests, {userName}?'
     },
-    totalReward: 10,
-    isOneTimePerUser: false,
-    maxDailyViews: 5
+    totalReward: 4,
   });
 
   const [errors, setErrors] = useState<AdFormErrors>({});
@@ -96,17 +96,18 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
     if (editingAd) {
       console.log('Editing ad data:', editingAd);
       console.log('Questions available:', editingAd.questions);
-      
+
       // Ensure we have at least 4 questions (3 custom + 1 feedback)
       const customQuestions = editingAd.questions.slice(0, 3);
       const feedbackQuestion = editingAd.questions.find(q => q.type === 'feedback') || editingAd.questions[3];
-      
+
       console.log('Custom questions:', customQuestions);
       console.log('Feedback question:', feedbackQuestion);
-      
+
       setFormState({
         title: editingAd.title || '',
         description: editingAd.description || '',
+        companyName: editingAd.companyName || '', // Add company name from editing ad
         videoFile: null, // Files can't be pre-populated for security reasons
         videoUrl: editingAd.videoUrl || '',
         previewImageFile: null,
@@ -125,8 +126,7 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
           question: feedbackQuestion?.question || 'How would you rate this ad based on your interests, {userName}?'
         },
         totalReward: editingAd.totalReward || 10,
-        isOneTimePerUser: editingAd.isOneTimePerUser || false,
-        maxDailyViews: editingAd.maxDailyViews || 5
+
       });
     } else {
       // Reset form for new ad creation
@@ -134,6 +134,7 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
       setFormState({
         title: '',
         description: '',
+        companyName: '', // Reset company name
         videoFile: null,
         videoUrl: '',
         previewImageFile: null,
@@ -148,11 +149,9 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
           question: 'How would you rate this ad based on your interests, {userName}?'
         },
         totalReward: 10,
-        isOneTimePerUser: false,
-        maxDailyViews: 5
       });
     }
-    
+
     // Reset errors when switching between create/edit
     setErrors({});
   }, [editingAd]);
@@ -166,6 +165,9 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
     }
     if (!formState.description.trim()) {
       newErrors.description = 'Description is required';
+    }
+    if (!formState.companyName.trim()) {
+      newErrors.companyName = 'Company name is required';
     }
     if (!editingAd && !formState.videoFile) {
       newErrors.videoFile = 'Video file is required';
@@ -211,6 +213,15 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
       newErrors.feedbackQuestion = 'Feedback question text is required';
     }
 
+    // ✅ FIX: Improved reward validation with decimal support
+    if (!formState.totalReward || formState.totalReward < AD_CONFIG.MIN_REWARD_AMOUNT) {
+      newErrors.totalReward = `Total reward must be at least ${AD_CONFIG.MIN_REWARD_AMOUNT} coins`;
+    } else if (formState.totalReward > AD_CONFIG.MAX_REWARD_AMOUNT) {
+      newErrors.totalReward = `Total reward cannot exceed ${AD_CONFIG.MAX_REWARD_AMOUNT} coins`;
+    } else if (formState.totalReward <= 0) {
+      newErrors.totalReward = 'Total reward must be greater than 0';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }, [formState, editingAd]);
@@ -220,7 +231,7 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
 
     // Validate file type and size
     if (type === 'video') {
-      const isValidFormat = AD_CONFIG.VIDEO_FORMATS.some(format => 
+      const isValidFormat = AD_CONFIG.VIDEO_FORMATS.some(format =>
         file.name.toLowerCase().endsWith(`.${format}`)
       );
       if (!isValidFormat) {
@@ -233,7 +244,7 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
       }
       setFormState(prev => ({ ...prev, videoFile: file }));
     } else {
-      const isValidFormat = AD_CONFIG.IMAGE_FORMATS.some(format => 
+      const isValidFormat = AD_CONFIG.IMAGE_FORMATS.some(format =>
         file.name.toLowerCase().endsWith(`.${format}`)
       );
       if (!isValidFormat) {
@@ -269,7 +280,7 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
   const updateQuestion = (index: number, field: string, value: any) => {
     setFormState(prev => ({
       ...prev,
-      questions: prev.questions.map((q, i) => 
+      questions: prev.questions.map((q, i) =>
         i === index ? { ...q, [field]: value } : q
       )
     }));
@@ -278,8 +289,8 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
   const updateQuestionOption = (questionIndex: number, optionIndex: number, value: string) => {
     setFormState(prev => ({
       ...prev,
-      questions: prev.questions.map((q, i) => 
-        i === questionIndex 
+      questions: prev.questions.map((q, i) =>
+        i === questionIndex
           ? { ...q, options: q.options.map((opt, j) => j === optionIndex ? value : opt) }
           : q
       )
@@ -303,7 +314,7 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
     }
 
     setIsSubmitting(true);
-    
+
     try {
       let videoUrl = editingAd?.videoUrl || '';
       let previewImageUrl = editingAd?.previewImage || '';
@@ -311,17 +322,16 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
       const adData: AdCreationData = {
         title: formState.title,
         description: formState.description,
+        companyName: formState.companyName, // Include company name
         questions: formState.questions,
         feedbackQuestionTitle: formState.feedbackQuestion.title,
         totalReward: formState.totalReward,
-        isOneTimePerUser: formState.isOneTimePerUser,
-        maxDailyViews: formState.maxDailyViews
       };
 
       if (editingAd) {
         // Update existing ad
         await updateAd(editingAd.id, adData);
-        
+
         // Handle file updates if new files provided
         if (formState.videoFile) {
           videoUrl = await uploadVideoToFirebase(formState.videoFile, editingAd.id);
@@ -329,12 +339,12 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
         if (formState.previewImageFile) {
           previewImageUrl = await uploadImageToFirebase(formState.previewImageFile, editingAd.id);
         }
-        
+
         toast.success('Ad updated successfully!');
       } else {
         // Create new ad
         const adId = await createAd(adData, currentAdminId);
-        
+
         // Handle file uploads
         if (formState.videoFile) {
           videoUrl = await uploadVideoToFirebase(formState.videoFile, adId);
@@ -342,13 +352,13 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
         if (formState.previewImageFile) {
           previewImageUrl = await uploadImageToFirebase(formState.previewImageFile, adId);
         }
-        
+
         // Update ad with file URLs
-        await updateAd(adId, { 
-          videoUrl, 
-          previewImage: previewImageUrl 
+        await updateAd(adId, {
+          videoUrl,
+          previewImage: previewImageUrl
         } as any);
-        
+
         toast.success('Ad created successfully!');
       }
 
@@ -406,6 +416,12 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
                 <CardHeader>
                   <CardTitle>{formState.title || 'Ad Title'}</CardTitle>
                   <CardDescription>{formState.description || 'Ad description...'}</CardDescription>
+                  {formState.companyName && (
+                    <div className="flex items-center gap-2 mt-2">
+                      <Building2 className="w-4 h-4 text-[--color-text-secondary]" />
+                      <span className="text-sm text-[--color-text-secondary]">{formState.companyName}</span>
+                    </div>
+                  )}
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -417,8 +433,8 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
                       <div>
                         <p className="text-[--color-text-secondary]">Per Question</p>
                         <p className="font-semibold">
-                          {formatFog(formState.questions.length > 0 
-                            ? Math.round(formState.totalReward / formState.questions.length) 
+                          {formatFog(formState.questions.length > 0
+                            ? Math.round(formState.totalReward / formState.questions.length)
                             : 0)}
                         </p>
                       </div>
@@ -427,7 +443,7 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
                         <p className="font-semibold">{formatUsd((fogSettings?.fogToUsdRate || 0.10) * formState.totalReward)}</p>
                       </div>
                     </div>
-                    
+
                     <div>
                       <h4 className="font-semibold mb-2">Questions ({formState.questions.length})</h4>
                       {formState.questions.map((q, index) => (
@@ -435,8 +451,8 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
                           <p className="font-medium mb-2">{index + 1}. {q.question || 'Question text...'}</p>
                           <div className="space-y-1">
                             {q.options.map((option, optIndex) => (
-                              <p 
-                                key={optIndex} 
+                              <p
+                                key={optIndex}
                                 className={`text-sm ${optIndex === q.correctAnswer ? 'text-green-600 font-medium' : 'text-[--color-text-secondary]'}`}
                               >
                                 {String.fromCharCode(65 + optIndex)}. {option || `Option ${optIndex + 1}...`}
@@ -467,19 +483,37 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
                   <CardTitle>Basic Information</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="title">Ad Title</Label>
-                    <Input
-                      id="title"
-                      value={formState.title}
-                      onChange={(e) => setFormState(prev => ({ ...prev, title: e.target.value }))}
-                      placeholder="Enter ad title..."
-                    />
-                    {errors.title && (
-                      <p className="text-red-600 text-sm mt-1">{errors.title}</p>
-                    )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="title">Ad Title</Label>
+                      <Input
+                        id="title"
+                        value={formState.title}
+                        onChange={(e) => setFormState(prev => ({ ...prev, title: e.target.value }))}
+                        placeholder="Enter ad title..."
+                      />
+                      {errors.title && (
+                        <p className="text-red-600 text-sm mt-1">{errors.title}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label htmlFor="companyName" className="flex items-center gap-2">
+                        <Building2 className="w-4 h-4" />
+                        Company Name *
+                      </Label>
+                      <Input
+                        id="companyName"
+                        value={formState.companyName}
+                        onChange={(e) => setFormState(prev => ({ ...prev, companyName: e.target.value }))}
+                        placeholder="Enter company name..."
+                      />
+                      {errors.companyName && (
+                        <p className="text-red-600 text-sm mt-1">{errors.companyName}</p>
+                      )}
+                    </div>
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="description">Description</Label>
                     <Textarea
@@ -647,7 +681,7 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
                           </Button>
                         )}
                       </div>
-                      
+
                       <div>
                         <Input
                           value={question.question}
@@ -655,7 +689,7 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
                           placeholder="Enter your question..."
                         />
                       </div>
-                      
+
                       <div className="space-y-2">
                         <Label>Answer Options</Label>
                         {question.options.map((option, oIndex) => (
@@ -685,7 +719,7 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
                           Select the correct answer by clicking the radio button
                         </p>
                       </div>
-                      
+
                       {errors.questions?.[qIndex] && (
                         <p className="text-red-600 text-sm">{errors.questions[qIndex]}</p>
                       )}
@@ -700,7 +734,7 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
                         Required
                       </div>
                     </div>
-                    
+
                     <div className="space-y-3">
                       <div>
                         <Label className="text-sm font-medium text-gray-700">
@@ -713,7 +747,7 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
                           className="w-full mt-1"
                         />
                       </div>
-                      
+
                       <div>
                         <Label className="text-sm font-medium text-gray-700">
                           Question Text (with profile data)
@@ -752,45 +786,26 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
                         type="number"
                         min={AD_CONFIG.MIN_REWARD_AMOUNT}
                         max={AD_CONFIG.MAX_REWARD_AMOUNT}
+                        step="0.1" // ✅ FIX: Allow decimal input
                         value={formState.totalReward}
-                        onChange={(e) => setFormState(prev => ({ ...prev, totalReward: parseInt(e.target.value) || 0 }))}
+                        onChange={(e) => {
+                          const value = parseFloat(e.target.value) || 0;
+                          setFormState(prev => ({ ...prev, totalReward: value }));
+                        }}
                       />
                       {errors.totalReward && (
                         <p className="text-red-600 text-sm mt-1">{errors.totalReward}</p>
                       )}
                       <p className="text-xs text-[--color-text-secondary] mt-1">
-                        Per question: {formState.questions.length > 0 
-                          ? Math.round(formState.totalReward / formState.questions.length) 
+                        Per question: {formState.questions.length > 0
+                          ? (formState.totalReward / 4).toFixed(2) // 4 questions total
                           : 0} coins
                       </p>
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="maxDailyViews">Max Daily Views</Label>
-                      <Input
-                        id="maxDailyViews"
-                        type="number"
-                        min="1"
-                        max="100"
-                        value={formState.maxDailyViews}
-                        onChange={(e) => setFormState(prev => ({ ...prev, maxDailyViews: parseInt(e.target.value) || 1 }))}
-                        disabled={formState.isOneTimePerUser}
-                      />
-                    </div>
-                    
-                    <div className="flex items-center space-x-2 mt-6">
-                      <input
-                        id="oneTime"
-                        type="checkbox"
-                        checked={formState.isOneTimePerUser}
-                        onChange={(e) => setFormState(prev => ({ 
-                          ...prev, 
-                          isOneTimePerUser: e.target.checked,
-                          maxDailyViews: e.target.checked ? 1 : prev.maxDailyViews
-                        }))}
-                        className="rounded"
-                      />
-                      <Label htmlFor="oneTime">One-time per user</Label>
+                      {fogSettings && (
+                        <p className="text-xs text-[--color-text-secondary] mt-1">
+                          USD Value: {formatUsd(fogSettings.fogToUsdRate * formState.totalReward)}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -805,8 +820,8 @@ const CreateEditAdModal: React.FC<CreateEditAdModalProps> = ({
             Cancel
           </Button>
           {!previewMode && (
-            <Button 
-              onClick={handleSubmit} 
+            <Button
+              onClick={handleSubmit}
               disabled={isSubmitting}
               className="flex items-center gap-2"
             >

@@ -16,7 +16,7 @@ const tabs: { id: Tab; label: string }[] = [
 
 const ProfileTabs = React.memo(({ activeTab, onTabChange }: ProfileTabsProps) => {
   return (
-    <div className="border-b border-[--color-border]">
+    <div className="border-b border-[--color-border]" id="profile-tabs">
       <nav className="flex px-4 space-x-2">
         {tabs.map(tab => (
           <button

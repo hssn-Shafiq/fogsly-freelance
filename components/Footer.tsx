@@ -104,12 +104,12 @@ const Footer = ({ navigate }: FooterProps) => {
             <p className="text-[--color-text-secondary] text-center text-sm">
               © {new Date().getFullYear()} FOGSLY. All rights reserved.
             </p>
-            <button 
+            {/* <button 
               onClick={() => navigate('admin')}
               className="text-xs text-[--color-text-secondary] hover:text-[--color-primary] transition-colors opacity-60 hover:opacity-100"
             >
               Admin Panel
-            </button>
+            </button> */}
           </div>
         </div>
       </div>

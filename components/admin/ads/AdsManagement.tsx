@@ -1,20 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Search, Filter, MoreVertical, Play, Pause, Edit, Trash2, Eye, Users } from 'lucide-react';
+import { Plus, Search, Filter, MoreVertical, Play, Pause, Edit, Trash2, Eye, Users, BarChart3 } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/Card';
 import { Input } from '../../ui/Input';
+import { type Route } from '../../../types';
 import { Ad } from '../../../firebase/types/ads';
 import { getAllAds, toggleAdStatus, toggleAdPause, deleteAd } from '../../../firebase/services/adService';
 import { toast } from 'react-toastify';
 
+// import { useNavigate } from 'react-router-dom';
+
+
 interface AdsManagementProps {
+  navigate: (route: Route) => void;
   onCreateNew: () => void;
   onEditAd: (ad: Ad) => void;
   onViewAd: (ad: Ad) => void;
 }
 
-const AdsManagement: React.FC<AdsManagementProps> = ({ onCreateNew, onEditAd, onViewAd }) => {
+const AdsManagement: React.FC<AdsManagementProps> = ({ navigate, onCreateNew, onEditAd, onViewAd }) => {
   const [ads, setAds] = useState<Ad[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -76,13 +81,13 @@ const AdsManagement: React.FC<AdsManagementProps> = ({ onCreateNew, onEditAd, on
 
   const filteredAds = ads.filter(ad => {
     const matchesSearch = ad.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         ad.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesFilter = filterStatus === 'all' || 
-                         (filterStatus === 'active' && ad.isActive && !ad.isPaused) ||
-                         (filterStatus === 'paused' && ad.isPaused) ||
-                         (filterStatus === 'inactive' && !ad.isActive);
-    
+      ad.description.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesFilter = filterStatus === 'all' ||
+      (filterStatus === 'active' && ad.isActive && !ad.isPaused) ||
+      (filterStatus === 'paused' && ad.isPaused) ||
+      (filterStatus === 'inactive' && !ad.isActive);
+
     return matchesSearch && matchesFilter;
   });
 
@@ -131,7 +136,7 @@ const AdsManagement: React.FC<AdsManagementProps> = ({ onCreateNew, onEditAd, on
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -145,7 +150,7 @@ const AdsManagement: React.FC<AdsManagementProps> = ({ onCreateNew, onEditAd, on
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -159,16 +164,16 @@ const AdsManagement: React.FC<AdsManagementProps> = ({ onCreateNew, onEditAd, on
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-[--color-text-secondary]">Completion Rate</p>
                 <p className="text-2xl font-bold text-blue-600">
-                  {ads.length > 0 
-                    ? Math.round((ads.reduce((sum, ad) => sum + (ad.totalCompletions || 0), 0) / 
-                        ads.reduce((sum, ad) => sum + (ad.totalViews || 0), 0)) * 100) || 0
+                  {ads.length > 0
+                    ? Math.round((ads.reduce((sum, ad) => sum + (ad.totalCompletions || 0), 0) /
+                      ads.reduce((sum, ad) => sum + (ad.totalViews || 0), 0)) * 100) || 0
                     : 0}%
                 </p>
               </div>
@@ -192,8 +197,8 @@ const AdsManagement: React.FC<AdsManagementProps> = ({ onCreateNew, onEditAd, on
           </div>
         </div>
         <div className="flex gap-2">
-          <select 
-            value={filterStatus} 
+          <select
+            value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value as any)}
             className="px-3 py-2 border border-[--color-border] rounded-lg bg-[--color-bg-primary] text-[--color-text-primary]"
           >
@@ -226,6 +231,16 @@ const AdsManagement: React.FC<AdsManagementProps> = ({ onCreateNew, onEditAd, on
                   </div>
                   <div className="flex items-center gap-2 ml-2">
                     {getStatusBadge(ad)}
+
+                    <Button
+                          onClick={() => navigate(`admin/ad-analytics/${ad.id}`)}
+                          variant="ghost"
+                          size="sm"
+                          className="text-blue-400 hover:text-blue-300 hover:bg-blue-400/10"
+                          title="View Analytics"
+                        >
+                          <BarChart3 className="w-4 h-4" />
+                        </Button>
                     <div className="relative group">
                       <Button variant="ghost" size="sm" className="p-1">
                         <MoreVertical className="w-4 h-4" />
@@ -266,19 +281,20 @@ const AdsManagement: React.FC<AdsManagementProps> = ({ onCreateNew, onEditAd, on
                           <Trash2 className="w-4 h-4" />
                           Delete
                         </button>
+                        
                       </div>
                     </div>
                   </div>
                 </div>
               </CardHeader>
-              
+
               <CardContent>
                 <div className="space-y-3">
                   {/* Preview Image */}
                   {ad.previewImage && (
                     <div className="aspect-video bg-[--color-bg-secondary] rounded-lg flex items-center justify-center overflow-hidden">
-                      <img 
-                        src={ad.previewImage} 
+                      <img
+                        src={ad.previewImage}
                         alt={ad.title}
                         className="w-full h-full object-cover"
                         onError={(e) => {
@@ -290,7 +306,7 @@ const AdsManagement: React.FC<AdsManagementProps> = ({ onCreateNew, onEditAd, on
                       <div className="hidden text-[--color-text-secondary] text-sm">No preview</div>
                     </div>
                   )}
-                  
+
                   {/* Ad Stats */}
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
@@ -310,7 +326,7 @@ const AdsManagement: React.FC<AdsManagementProps> = ({ onCreateNew, onEditAd, on
                       <p className="font-semibold text-[--color-text-primary]">{ad.totalCompletions || 0}</p>
                     </div>
                   </div>
-                  
+
                   {/* Ad Type */}
                   <div className="flex items-center justify-between text-xs text-[--color-text-secondary]">
                     <span>{ad.isOneTimePerUser ? 'One-time per user' : `Max ${ad.maxDailyViews}/day`}</span>
@@ -333,7 +349,7 @@ const AdsManagement: React.FC<AdsManagementProps> = ({ onCreateNew, onEditAd, on
             {searchTerm || filterStatus !== 'all' ? 'No ads found' : 'No ads created yet'}
           </h3>
           <p className="text-[--color-text-secondary] mb-4">
-            {searchTerm || filterStatus !== 'all' 
+            {searchTerm || filterStatus !== 'all'
               ? 'Try adjusting your search or filters'
               : 'Create your first ad to start earning revenue from user engagement'
             }
