@@ -122,7 +122,7 @@ const CustomerServicePage = ({ navigate }: CustomerServicePageProps) => {
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold mb-4">Customer Service</h1>
             <p className="text-lg text-[--color-text-secondary]">
-              Get help with your account, payments, and other questions.
+              Get help with your account, payments, and other questions. Our support team is here to assist you.
             </p>
           </div>
 
