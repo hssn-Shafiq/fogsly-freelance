@@ -108,7 +108,7 @@ const CustomerServicePage = ({ navigate }: CustomerServicePageProps) => {
   };
 
   return (
-    <div className="pt-0 bg-[--color-bg-primary] min-h-screen">
+    <div className="pt-4 bg-[--color-bg-primary] min-h-screen">
       <div className="container mx-auto px-4 py-8">
 
         <motion.div
