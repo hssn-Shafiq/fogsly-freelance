@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, Target, TrendingUp, Calendar, ArrowDownLeft, ArrowUpRight, Users } from 'lucide-react';
+import { Eye, Target, TrendingUp, Calendar, Send, ArrowDownLeft, ArrowUpRight, Users } from 'lucide-react';
 import { User as FirebaseUser, UserProfile } from '../../../firebase/types/user';
 import { getUserAdStats, getUserDailyActivity } from '../../../firebase/services/adService';
 import { getUserEarnings } from '../../../firebase/services/userEarningsService';
@@ -73,8 +73,11 @@ const OverviewTab = React.memo(({ userProfile, currentUser }: OverviewTabProps) 
   const totalEarnings = userEarnings?.totalEarnings || 0;
   const availableBalance = userEarnings?.availableBalance || 0;
   const adsEarnings = userEarnings?.adsEarnings || 0;
-  const transferEarnings = userEarnings?.depositEarnings || 0;
+  const transferEarnings = userEarnings?.transferEarnings || 0;
   const referralEarnings = userEarnings?.referralEarnings || 0;
+  const totalSent = userEarnings?.totalSent || 0;
+  const totalReceived = userEarnings?.totalReceived || 0;
+  const walletAddress = userEarnings?.walletAddress || '';
   
   const currentRate = fogSettings?.fogToUsdRate || 0.10;
 
@@ -82,11 +85,28 @@ const OverviewTab = React.memo(({ userProfile, currentUser }: OverviewTabProps) 
     <div className="space-y-6">
       <h3 className="text-lg font-semibold text-[--color-text-primary]">Earning Sources Overview</h3>
       
+      {/* Wallet Info */}
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50">
+        <CardContent className="p-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <p className="text-sm font-medium text-[--color-text-secondary]">Your Wallet Address</p>
+              <p className="text-lg font-mono bg-white px-3 py-1 rounded border mt-1">{walletAddress}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-[--color-text-secondary]">Available Balance</p>
+              <p className="text-2xl font-bold text-[--color-text-primary]">{formatFog(availableBalance)}</p>
+              <p className="text-sm text-[--color-text-secondary]">≈ {formatUsd(availableBalance * currentRate)}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* 3 Earning Sources */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
-          <CardContent className="p-4  text-center">
-            <div className="flex items-center mt-4 justify-center w-12 h-12 bg-blue-100 rounded-full mx-auto mb-3">
+          <CardContent className="p-4 text-center">
+            <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mx-auto mb-3">
               <Eye className="w-6 h-6 text-blue-600" />
             </div>
             <p className="text-xl font-bold text-[--color-text-primary]">{formatFog(adsEarnings)}</p>
@@ -98,19 +118,19 @@ const OverviewTab = React.memo(({ userProfile, currentUser }: OverviewTabProps) 
 
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="flex items-center mt-4 justify-center w-12 h-12 bg-green-100 rounded-full mx-auto mb-3">
+            <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mx-auto mb-3">
               <ArrowDownLeft className="w-6 h-6 text-green-600" />
             </div>
             <p className="text-xl font-bold text-[--color-text-primary]">{formatFog(transferEarnings)}</p>
             <p className="text-sm text-[--color-text-secondary]">From Transfers</p>
-            <p className="text-xs text-green-600 mt-1">Received coins</p>
+            <p className="text-xs text-green-600 mt-1">{formatFog(totalReceived)} received</p>
             <p className="text-xs text-[--color-text-secondary]">≈ {formatUsd(transferEarnings * currentRate)}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="flex items-center mt-4 justify-center w-12 h-12 bg-purple-100 rounded-full mx-auto mb-3">
+            <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-full mx-auto mb-3">
               <Users className="w-6 h-6 text-purple-600" />
             </div>
             <p className="text-xl font-bold text-[--color-text-primary]">{formatFog(referralEarnings)}</p>
@@ -121,23 +141,33 @@ const OverviewTab = React.memo(({ userProfile, currentUser }: OverviewTabProps) 
         </Card>
       </div>
 
-      {/* Total Earnings Summary */}
-      {/* <Card className="bg-gradient-to-r from-green-50 to-blue-50">
-        <CardContent className="p-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="text-sm font-medium text-[--color-text-secondary]">Available Earnings</p>
-              <p className="text-2xl font-bold text-[--color-text-primary]">{formatFog(availableBalance)}</p>
-              <p className="text-sm text-[--color-text-secondary]">≈ {formatUsd(availableBalance * currentRate)}</p>
+      {/* Transfer Activity */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Send className="w-5 h-5" />
+            Transfer Activity
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-center p-3 bg-red-50 rounded-lg">
+              <div className="flex items-center justify-center w-8 h-8 bg-red-100 rounded-full mx-auto mb-2">
+                <ArrowUpRight className="w-4 h-4 text-red-600" />
+              </div>
+              <p className="text-lg font-bold text-red-900">{formatFog(totalSent)}</p>
+              <p className="text-sm text-red-700">Total Sent</p>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-[--color-text-secondary]">Total Earned</p>
-              <p className="text-xl font-bold text-[--color-text-primary]">{formatFog(totalEarnings)}</p>
-              <p className="text-xs text-[--color-text-secondary]">All-time earnings</p>
+            <div className="text-center p-3 bg-green-50 rounded-lg">
+              <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-full mx-auto mb-2">
+                <ArrowDownLeft className="w-4 h-4 text-green-600" />
+              </div>
+              <p className="text-lg font-bold text-green-900">{formatFog(totalReceived)}</p>
+              <p className="text-sm text-green-700">Total Received</p>
             </div>
           </div>
         </CardContent>
-      </Card> */}
+      </Card>
 
       {/* Daily Progress */}
       <Card>

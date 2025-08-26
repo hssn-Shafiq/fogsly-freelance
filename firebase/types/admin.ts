@@ -15,6 +15,7 @@ export type AdminPermission =
   | 'user-management' 
   | 'content-management'
   | 'ads-management'
+  | 'payment-management'
   | 'analytics-view'
   | 'system-settings';
 
@@ -58,6 +59,8 @@ export type AdminRoute =
   | 'content-management'
   | 'ads-management'
   | 'fogcoin-management'
+  | 'payment-management'
+  | 'payment-methods'
   | 'analytics'
   | 'settings';
 

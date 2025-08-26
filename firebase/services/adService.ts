@@ -25,6 +25,7 @@ import {
   AdQuestion,
   UserContactDetails
 } from '../types/ads';
+import { addAdsEarnings } from './userEarningsService';
 
 // Collection names
 const ADS_COLLECTION = 'ads';
@@ -39,7 +40,7 @@ const USER_DAILY_ACTIVITIES_COLLECTION = 'userDailyActivities';
 export const createAd = async (adData: AdCreationData, adminId: string): Promise<string> => {
   try {
     // Calculate reward per question (only for the first 3 custom questions)
-    const rewardPerQuestion = adData.totalReward / 4; // 4 total questions (3 custom + 1 feedback)
+    const rewardPerQuestion = Number((adData.totalReward / 4).toFixed(2)); // 4 total questions (3 custom + 1 feedback)
     
     // Generate the first 3 custom questions
     const customQuestions: AdQuestion[] = adData.questions.map((q, index) => ({
@@ -66,15 +67,14 @@ export const createAd = async (adData: AdCreationData, adminId: string): Promise
     const newAd: Omit<Ad, 'id'> = {
       title: adData.title,
       description: adData.description,
+      companyName: adData.companyName, // ✅ FIX: Now properly storing company name
       videoUrl: '', // Will be updated after file upload
       previewImage: '', // Will be updated after file upload
       questions: allQuestions,
-      totalReward: adData.totalReward,
+      totalReward: Number(adData.totalReward.toFixed(2)), // ✅ FIX: Ensure decimal precision
       rewardPerQuestion,
       isActive: true,
       isPaused: false,
-      isOneTimePerUser: adData.isOneTimePerUser,
-      maxDailyViews: adData.maxDailyViews,
       createdBy: adminId,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -223,6 +223,102 @@ export const getAdById = async (adId: string): Promise<Ad | null> => {
   }
 };
 
+// Helper function to convert Firestore timestamp to Date
+const convertFirestoreTimestamp = (timestamp: any): Date => {
+  if (!timestamp) return new Date();
+  
+  // If it's already a Date object
+  if (timestamp instanceof Date) {
+    return timestamp;
+  }
+  
+  // If it's a Firestore Timestamp
+  if (timestamp.seconds && timestamp.nanoseconds !== undefined) {
+    return new Date(timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000);
+  }
+  
+  // If it's a string, try to parse it
+  if (typeof timestamp === 'string') {
+    return new Date(timestamp);
+  }
+  
+  // Fallback
+  return new Date();
+};
+
+export const getAdViewers = async (adId: string) => {
+  try {
+    // Get all user interactions for this ad
+    const interactionsQuery = query(
+      collection(db, USER_AD_INTERACTIONS_COLLECTION),
+      where('adId', '==', adId),
+      where('isCompleted', '==', true)
+    );
+    
+    const interactionsSnapshot = await getDocs(interactionsQuery);
+    const viewers = [];
+    
+    for (const interactionDoc of interactionsSnapshot.docs) {
+      const interaction = interactionDoc.data() as UserAdInteraction;
+      
+      // Get user profile data
+      const userProfileRef = doc(db, 'userProfile', interaction.userId);
+      const userProfileDoc = await getDoc(userProfileRef);
+      
+      if (userProfileDoc.exists()) {
+        const userProfile = userProfileDoc.data();
+        
+        // Calculate correct answers
+        const correctAnswers = interaction.questionsAnswered.filter(q => q.isCorrect).length;
+        
+        viewers.push({
+          userId: interaction.userId,
+          name: userProfile.name || 'N/A',
+          email: userProfile.email || 'N/A',
+          phone: userProfile.phone || 'N/A',
+          country: userProfile.country || 'N/A',
+          city: userProfile.city || 'N/A',
+          correctAnswers: correctAnswers,
+          totalQuestions: interaction.questionsAnswered.length,
+          earnedAmount: interaction.totalEarned,
+          watchedAt: convertFirestoreTimestamp(interaction.watchedAt),
+          completedAt: interaction.completedAt ? convertFirestoreTimestamp(interaction.completedAt) : undefined
+        });
+      }
+    }
+    
+    return viewers;
+  } catch (error) {
+    console.error('Error getting ad viewers:', error);
+    throw error;
+  }
+};
+
+export const getAdAnalytics = async (adId: string) => {
+  try {
+    const ad = await getAdById(adId);
+    if (!ad) return null;
+    
+    const viewers = await getAdViewers(adId);
+    
+    return {
+      adId: adId,
+      totalViews: ad.totalViews,
+      totalCompletions: ad.totalCompletions,
+      totalEarningsDistributed: viewers.reduce((sum, viewer) => sum + viewer.earnedAmount, 0),
+      averageScore: viewers.length > 0 ? 
+        (viewers.reduce((sum, viewer) => sum + (viewer.correctAnswers / viewer.totalQuestions) * 100, 0) / viewers.length) : 0,
+      viewerDetails: viewers,
+      companyName: ad.companyName,
+      adTitle: ad.title,
+      createdAt: convertFirestoreTimestamp(ad.createdAt)
+    };
+  } catch (error) {
+    console.error('Error getting ad analytics:', error);
+    throw error;
+  }
+};
+
 /**
  * User Functions - Watch ads, answer questions, track earnings
  */
@@ -238,20 +334,41 @@ export const watchAd = async (
   userDetails?: { email: string; phone?: string; address?: string; }
 ): Promise<{ earnedAmount: number; interactionId: string; }> => {
   try {
-    // Start the interaction
-    const interactionId = await startAdInteraction(userId, adId);
-    
+    // ✅ FIX: Check if user already completed this ad to prevent duplicates
+    const hasCompleted = await hasUserCompletedAd(userId, adId);
+    if (hasCompleted) {
+      throw new Error('You have already completed this ad');
+    }
+
     // Get the ad to calculate rewards
     const ad = await getAdById(adId);
     if (!ad) {
       throw new Error('Ad not found');
     }
-    
+
+    if (!ad.isActive || ad.isPaused) {
+      throw new Error('This ad is no longer available');
+    }
+
+    // ✅ FIX: Create interaction record first but don't mark as completed yet
+    const interaction: Omit<UserAdInteraction, 'id'> = {
+      userId,
+      adId,
+      watchedAt: new Date(),
+      questionsAnswered: [],
+      totalEarned: 0,
+      isCompleted: false
+    };
+
+    const interactionRef = await addDoc(collection(db, USER_AD_INTERACTIONS_COLLECTION), interaction);
+    const interactionId = interactionRef.id;
+
     let totalEarned = 0;
     let questionsAnswered = 0;
     let correctAnswers = 0;
-    
-    // Submit answers and calculate rewards
+    const answersData = [];
+
+    // Process answers and calculate rewards
     for (const answer of answers) {
       const question = ad.questions.find(q => q.id === answer.questionId);
       if (question) {
@@ -274,26 +391,54 @@ export const watchAd = async (
         
         totalEarned += earnedReward;
         
-        await submitAdAnswer(
-          interactionId, 
-          answer.questionId, 
-          answer.selectedAnswer || 0, 
+        answersData.push({
+          questionId: answer.questionId,
+          selectedAnswer: answer.selectedAnswer || 0,
+          textAnswer: answer.textAnswer || '',
           isCorrect,
           earnedReward
-        );
+        });
       }
     }
+
+    // ✅ FIX: Update interaction with all data at once and mark as completed
+    const updateData: any = {
+      questionsAnswered: answersData,
+      totalEarned,
+      completedAt: new Date(),
+      isCompleted: true
+    };
     
-    // Complete the interaction
-    await completeAdInteraction(interactionId, userDetails);
+    if (userDetails) {
+      updateData.userDetails = userDetails;
+    }
     
-    // Update user stats
-    await updateUserAdStats(userId, totalEarned);
-    
-    // Update daily activity
+    await updateDoc(interactionRef, updateData);
+
+    // ✅ FIX: Update ad analytics (views + completion)
+    const adRef = doc(db, ADS_COLLECTION, adId);
+    const adDoc = await getDoc(adRef);
+    if (adDoc.exists()) {
+      const currentViews = adDoc.data().totalViews || 0;
+      const currentCompletions = adDoc.data().totalCompletions || 0;
+      await updateDoc(adRef, {
+        totalViews: currentViews + 1,
+        totalCompletions: currentCompletions + 1
+      });
+    }
+
+    // ✅ NEW: Update centralized user earnings
+    if (totalEarned > 0) {
+      await addAdsEarnings(userId, totalEarned);
+    }
+
+    // ✅ FIX: Update user ad stats (total ads watched, daily count)
+    await updateUserAdStats(userId);
+
+    // ✅ FIX: Update daily activity
     const today = new Date().toISOString().split('T')[0];
     await updateUserDailyActivity(userId, today, 1, totalEarned, questionsAnswered, correctAnswers);
-    
+
     return { earnedAmount: totalEarned, interactionId };
   } catch (error) {
     console.error('Error watching ad:', error);
@@ -355,38 +500,33 @@ export const getAvailableAdsForUser = async (userId: string): Promise<Ad[]> => {
       ...doc.data()
     } as Ad));
 
-    // Get user's ad interactions to filter out one-time ads already watched
+    // Get user's completed ad interactions to filter out already watched ads
     const interactionsQuery = query(
       collection(db, USER_AD_INTERACTIONS_COLLECTION),
-      where('userId', '==', userId)
+      where('userId', '==', userId),
+      where('isCompleted', '==', true)
     );
     const interactionsSnapshot = await getDocs(interactionsQuery);
     const watchedAdIds = new Set(
       interactionsSnapshot.docs
         .map(doc => doc.data() as UserAdInteraction)
-        .filter(interaction => interaction.isCompleted)
         .map(interaction => interaction.adId)
     );
 
     // Get user's daily watch count
-    const userStats = await getUserAdStats(userId);
     const today = new Date().toISOString().split('T')[0];
     const dailyActivity = await getUserDailyActivity(userId, today);
     
     // Filter ads based on user's watch history and daily limits
     return allAds.filter(ad => {
-      // If it's a one-time ad and user has already watched it
-      if (ad.isOneTimePerUser && watchedAdIds.has(ad.id)) {
+      // ✅ FIX: Users can't watch the same ad twice (one-time completion)
+      if (watchedAdIds.has(ad.id)) {
         return false;
       }
       
-      // Check daily watch limit for this specific ad
-      if (!ad.isOneTimePerUser && dailyActivity) {
-        // This is simplified - in a real app, you'd track per-ad daily counts
-        const totalDailyWatches = dailyActivity.adsWatched;
-        if (totalDailyWatches >= 50) { // Global daily limit
-          return false;
-        }
+      // Check daily watch limit (global limit of 50 ads per day)
+      if (dailyActivity && dailyActivity.adsWatched >= 50) {
+        return false;
       }
       
       return true;
@@ -399,6 +539,8 @@ export const getAvailableAdsForUser = async (userId: string): Promise<Ad[]> => {
 
 export const startAdInteraction = async (userId: string, adId: string): Promise<string> => {
   try {
+    // ✅ This function is now only used internally by watchAd function
+    // to prevent duplicate interactions
     const interaction: Omit<UserAdInteraction, 'id'> = {
       userId,
       adId,
@@ -409,17 +551,6 @@ export const startAdInteraction = async (userId: string, adId: string): Promise<
     };
 
     const docRef = await addDoc(collection(db, USER_AD_INTERACTIONS_COLLECTION), interaction);
-    
-    // Update ad view count
-    const adRef = doc(db, ADS_COLLECTION, adId);
-    const adDoc = await getDoc(adRef);
-    if (adDoc.exists()) {
-      const currentViews = adDoc.data().totalViews || 0;
-      await updateDoc(adRef, {
-        totalViews: currentViews + 1
-      });
-    }
-    
     return docRef.id;
   } catch (error) {
     console.error('Error starting ad interaction:', error);
@@ -427,94 +558,11 @@ export const startAdInteraction = async (userId: string, adId: string): Promise<
   }
 };
 
-export const submitAdAnswer = async (
-  interactionId: string, 
-  questionId: string, 
-  selectedAnswer: number,
-  isCorrect: boolean,
-  earnedReward: number
-): Promise<void> => {
-  try {
-    const interactionRef = doc(db, USER_AD_INTERACTIONS_COLLECTION, interactionId);
-    const interactionDoc = await getDoc(interactionRef);
-    
-    if (!interactionDoc.exists()) {
-      throw new Error('Interaction not found');
-    }
-    
-    const interaction = interactionDoc.data() as UserAdInteraction;
-    const updatedAnswers = [...interaction.questionsAnswered, {
-      questionId,
-      selectedAnswer,
-      isCorrect,
-      earnedReward
-    }];
-    
-    await updateDoc(interactionRef, {
-      questionsAnswered: updatedAnswers,
-      totalEarned: interaction.totalEarned + earnedReward
-    });
-  } catch (error) {
-    console.error('Error submitting answer:', error);
-    throw new Error('Failed to submit answer');
-  }
-};
+// ✅ Removed submitAdAnswer function to prevent duplicate processing
+// All answer submission logic is now handled directly in the watchAd function
 
-export const completeAdInteraction = async (
-  interactionId: string, 
-  userDetails?: { email: string; phone?: string; address?: string; }
-): Promise<void> => {
-  try {
-    const interactionRef = doc(db, USER_AD_INTERACTIONS_COLLECTION, interactionId);
-    const interactionDoc = await getDoc(interactionRef);
-    
-    if (!interactionDoc.exists()) {
-      throw new Error('Interaction not found');
-    }
-    
-    const interaction = interactionDoc.data() as UserAdInteraction;
-    
-    // Mark interaction as completed
-    const updateData: any = {
-      completedAt: new Date(),
-      isCompleted: true
-    };
-    
-    // Add user details if provided
-    if (userDetails) {
-      updateData.userDetails = userDetails;
-    }
-    
-    await updateDoc(interactionRef, updateData);
-    
-    // Update ad completion count
-    const adRef = doc(db, ADS_COLLECTION, interaction.adId);
-    const adDoc = await getDoc(adRef);
-    if (adDoc.exists()) {
-      const currentCompletions = adDoc.data().totalCompletions || 0;
-      await updateDoc(adRef, {
-        totalCompletions: currentCompletions + 1
-      });
-    }
-    
-    // Update user stats
-    await updateUserAdStats(interaction.userId, interaction.totalEarned);
-    
-    // Update daily activity
-    const today = new Date().toISOString().split('T')[0];
-    await updateUserDailyActivity(
-      interaction.userId, 
-      today, 
-      1, 
-      interaction.totalEarned, 
-      interaction.questionsAnswered.length,
-      interaction.questionsAnswered.filter(q => q.isCorrect).length
-    );
-  } catch (error) {
-    console.error('Error completing ad interaction:', error);
-    throw new Error('Failed to complete ad interaction');
-  }
-};
+// ✅ Removed completeAdInteraction function to prevent duplicate processing
+// All completion logic is now handled directly in the watchAd function
 
 /**
  * User Statistics Functions
@@ -530,26 +578,29 @@ export const getUserAdStats = async (userId: string): Promise<UserAdStats | null
       const initialStats: UserAdStats = {
         userId,
         totalAdsWatched: 0,
-        totalEarnings: 0,
-        totalEarned: 0, // Alias for compatibility
         dailyWatchCount: 0,
         todaysCount: 0, // Alias for compatibility
         lastWatchDate: new Date().toISOString().split('T')[0],
-        availableBalance: 0,
-        withdrawnAmount: 0
+        createdAt: new Date(),
+        lastUpdatedAt: new Date()
       };
-      // Use setDoc to create the document if it doesn't exist
-      await setDoc(statsRef, initialStats, { merge: true });
+      await setDoc(statsRef, initialStats);
       return initialStats;
     }
-    return statsDoc.data() as UserAdStats;
+    
+    const data = statsDoc.data();
+    return {
+      ...data,
+      createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
+      lastUpdatedAt: data.lastUpdatedAt?.toDate ? data.lastUpdatedAt.toDate() : new Date(data.lastUpdatedAt)
+    } as UserAdStats;
   } catch (error) {
     console.error('Error fetching user ad stats:', error);
     throw new Error('Failed to fetch user ad stats');
   }
 };
 
-export const updateUserAdStats = async (userId: string, earnedAmount: number): Promise<void> => {
+export const updateUserAdStats = async (userId: string): Promise<void> => {
   try {
     const statsRef = doc(db, USER_AD_STATS_COLLECTION, userId);
     const statsDoc = await getDoc(statsRef);
@@ -559,25 +610,23 @@ export const updateUserAdStats = async (userId: string, earnedAmount: number): P
       const newStats: UserAdStats = {
         userId,
         totalAdsWatched: 1,
-        totalEarnings: earnedAmount,
-        totalEarned: earnedAmount, // Alias for compatibility
         dailyWatchCount: 1,
         todaysCount: 1, // Alias for compatibility
         lastWatchDate: today,
-        availableBalance: earnedAmount,
-        withdrawnAmount: 0
+        createdAt: new Date(),
+        lastUpdatedAt: new Date()
       };
-      // Use setDoc to create the document if it doesn't exist
-      await setDoc(statsRef, newStats, { merge: true });
+      await setDoc(statsRef, newStats);
     } else {
       const currentStats = statsDoc.data() as UserAdStats;
       const isNewDay = currentStats.lastWatchDate !== today;
+      
       await updateDoc(statsRef, {
         totalAdsWatched: currentStats.totalAdsWatched + 1,
-        totalEarnings: currentStats.totalEarnings + earnedAmount,
         dailyWatchCount: isNewDay ? 1 : currentStats.dailyWatchCount + 1,
+        todaysCount: isNewDay ? 1 : (currentStats.todaysCount || currentStats.dailyWatchCount) + 1,
         lastWatchDate: today,
-        availableBalance: currentStats.availableBalance + earnedAmount
+        lastUpdatedAt: new Date()
       });
     }
   } catch (error) {

@@ -5,15 +5,20 @@ import {
   X,
   User,
   LayoutDashboard,
+  TrendingUp,
   Calendar,
   PlayCircle,
   BadgeDollarSign,
   LogOut,
   LogIn,
-  Sparkles
+  Sparkles,
+  HeadphonesIcon
 } from 'lucide-react';
 import { type Theme, type Route } from '../types';
 import { Button } from './ui/Button';
+import { User as FirebaseUser } from "../firebase/types/user";
+import { getUserData } from '../firebase/services/userService';
+
 
 interface HeaderProps {
   currentTheme: Theme;
@@ -21,15 +26,24 @@ interface HeaderProps {
   navigate: (route: Route) => void;
   isLoggedIn: boolean;
   onLogout: () => void;
+  currentUser: FirebaseUser | null;
   // Optional: decide whether to render a bottom nav bar on mobile
   enableBottomMobileBar?: boolean;
 }
 
+// const navLinks: { label: string; route: Route; icon: React.ReactNode }[] = [
+//   { label: 'Dashboard', route: 'dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
+//   { label: 'Earnings', route: 'earnings-dashboard', icon: <TrendingUp className="w-5 h-5" /> },
+//   { label: 'Events', route: 'events', icon: <Calendar className="w-5 h-5" /> },
+//   { label: 'Watch Ads', route: 'watch-ads', icon: <PlayCircle className="w-5 h-5" /> },
+//   { label: 'Pricing', route: 'pricing', icon: <BadgeDollarSign className="w-5 h-5" /> },
+// ];
 const navLinks: { label: string; route: Route; icon: React.ReactNode }[] = [
   { label: 'Dashboard', route: 'dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
   { label: 'Events', route: 'events', icon: <Calendar className="w-5 h-5" /> },
   { label: 'Watch Ads', route: 'watch-ads', icon: <PlayCircle className="w-5 h-5" /> },
   { label: 'Pricing', route: 'pricing', icon: <BadgeDollarSign className="w-5 h-5" /> },
+  { label: 'Support', route: 'customer-service', icon: <HeadphonesIcon className="w-5 h-5" /> },
 ];
 
 const themeSwatches: { value: Theme; label: string; colorClass: string }[] = [
@@ -44,10 +58,12 @@ export const Header: React.FC<HeaderProps> = ({
   navigate,
   isLoggedIn,
   onLogout,
+  currentUser,
   enableBottomMobileBar = true,
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const handleScroll = useCallback(() => {
     setIsScrolled(window.scrollY > 10);
@@ -58,6 +74,26 @@ export const Header: React.FC<HeaderProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
+    // Check if current user is admin
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (currentUser?.uid) {
+        try {
+          const userData = await getUserData(currentUser.uid);
+          setIsAdmin(userData?.role === 'admin');
+        } catch (error) {
+          console.error('Error checking admin status:', error);
+          setIsAdmin(false);
+        }
+      } else {
+        setIsAdmin(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [currentUser]);
+
+  console.log("current user is ", currentUser);
   // Lock body scroll when mobile menu is open
   useEffect(() => {
     if (mobileOpen) {
@@ -79,10 +115,20 @@ export const Header: React.FC<HeaderProps> = ({
   const toggleMobile = () => setMobileOpen(o => !o);
 
   const handleNavClick = (route: Route) => {
-    if (route === 'dashboard' && !isLoggedIn) {
+    if ((route === 'dashboard' || route === 'earnings-dashboard') && !isLoggedIn) {
       navigate('auth');
     } else {
       navigate(route);
+    }
+    setMobileOpen(false);
+  };
+
+    // Handle profile/admin navigation
+  const handleProfileClick = () => {
+    if (isAdmin) {
+      navigate('admin');
+    } else {
+      navigate('profile');
     }
     setMobileOpen(false);
   };
@@ -95,11 +141,10 @@ export const Header: React.FC<HeaderProps> = ({
           <motion.button
             key={ts.value}
             onClick={() => setCurrentTheme(ts.value)}
-            className={`w-6 h-6 rounded-full transition-all border border-transparent ${
-              currentTheme === ts.value
+            className={`w-6 h-6 rounded-full transition-all border border-transparent ${currentTheme === ts.value
                 ? 'ring-2 ring-[--color-primary] ring-offset-2 ring-offset-[--color-bg-secondary]'
                 : 'hover:ring-2 hover:ring-[--color-primary]/50'
-            } ${ts.colorClass}`}
+              } ${ts.colorClass}`}
             aria-label={`${ts.label} theme`}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
@@ -111,9 +156,9 @@ export const Header: React.FC<HeaderProps> = ({
       <motion.button
         onClick={() => {
           const order: Theme[] = ['light', 'dark', 'desert'];
-            const idx = order.indexOf(currentTheme);
-            const next = order[(idx + 1) % order.length];
-            setCurrentTheme(next);
+          const idx = order.indexOf(currentTheme);
+          const next = order[(idx + 1) % order.length];
+          setCurrentTheme(next);
         }}
         whileTap={{ scale: 0.9 }}
         className="md:hidden relative inline-flex items-center justify-center w-9 h-9 rounded-full bg-[--color-bg-secondary]/70 backdrop-blur-sm border border-white/10 hover:border-[--color-primary]/50 transition"
@@ -138,17 +183,17 @@ export const Header: React.FC<HeaderProps> = ({
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
           {/* Logo */}
-            <motion.button
-              onClick={() => { navigate('home'); setMobileOpen(false); }}
-              initial={{ opacity: 0, x: -12 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-2 group focus:outline-none focus:ring-2 focus:ring-[--color-primary] rounded"
-              aria-label="Go to homepage"
-            >
-              <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-[--color-primary] via-[--color-primary] to-[--color-accent] bg-clip-text text-transparent group-hover:scale-[1.03] transition-transform">
-                FOGSLY
-              </span>
-            </motion.button>
+          <motion.button
+            onClick={() => { navigate('home'); setMobileOpen(false); }}
+            initial={{ opacity: 0, x: -12 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex items-center gap-2 group focus:outline-none focus:ring-2 focus:ring-[--color-primary] rounded"
+            aria-label="Go to homepage"
+          >
+            <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-[--color-primary] via-[--color-primary] to-[--color-accent] bg-clip-text text-transparent group-hover:scale-[1.03] transition-transform">
+              FOGSLY
+            </span>
+          </motion.button>
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8" aria-label="Primary">
@@ -175,11 +220,12 @@ export const Header: React.FC<HeaderProps> = ({
               {isLoggedIn ? (
                 <>
                   <motion.button
-                    onClick={() => navigate('profile')}
+                    onClick={handleProfileClick}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.92 }}
                     className="w-9 h-9 rounded-full flex items-center justify-center bg-[--color-bg-secondary]/70 border border-white/10 hover:border-[--color-primary]/50 transition"
-                    aria-label="Profile"
+                   aria-label={isAdmin ? "Admin Panel" : "Profile"}
+                    title={isAdmin ? "Go to Admin Panel" : "Go to Profile"}
                   >
                     <User className="w-5 h-5 text-[--color-text-primary]" />
                   </motion.button>
@@ -293,11 +339,10 @@ export const Header: React.FC<HeaderProps> = ({
                             <motion.button
                               onClick={() => handleNavClick(link.route)}
                               whileTap={{ scale: 0.97 }}
-                              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-left transition group border border-transparent ${
-                                active
+                              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-left transition group border border-transparent ${active
                                   ? 'bg-[--color-primary]/15 text-[--color-primary] border-[--color-primary]/30'
                                   : 'bg-white/[0.02] hover:bg-white/[0.06] text-[--color-text-primary]/90'
-                              }`}
+                                }`}
                             >
                               <span className="text-[--color-primary]">{link.icon}</span>
                               {link.label}
@@ -321,11 +366,10 @@ export const Header: React.FC<HeaderProps> = ({
                           key={ts.value}
                           onClick={() => setCurrentTheme(ts.value)}
                           whileTap={{ scale: 0.9 }}
-                          className={`relative w-12 h-12 rounded-2xl border flex items-center justify-center transition ${
-                            currentTheme === ts.value
+                          className={`relative w-12 h-12 rounded-2xl border flex items-center justify-center transition ${currentTheme === ts.value
                               ? 'border-[--color-primary] ring-2 ring-[--color-primary]/40'
                               : 'border-white/10 hover:border-[--color-primary]/50'
-                          } ${ts.colorClass}`}
+                            } ${ts.colorClass}`}
                           aria-label={`${ts.label} theme`}
                         >
                           {currentTheme === ts.value && (
@@ -417,17 +461,15 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   key={link.label}
                   onClick={() => handleNavClick(link.route)}
-                  className={`flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-xl text-[11px] font-medium transition relative ${
-                    active
+                  className={`flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-xl text-[11px] font-medium transition relative ${active
                       ? 'text-[--color-primary] bg-[--color-primary]/15'
                       : 'text-[--color-text-primary]/70 hover:text-[--color-text-primary]'
-                  }`}
+                    }`}
                 >
                   <span className="w-5 h-5">
                     {React.cloneElement(link.icon as React.ReactElement, {
-                      className: `w-5 h-5 ${
-                        active ? 'text-[--color-primary]' : 'text-[--color-text-primary]/70'
-                      }`
+                      className: `w-5 h-5 ${active ? 'text-[--color-primary]' : 'text-[--color-text-primary]/70'
+                        }`
                     })}
                   </span>
                   {link.label.split(' ')[0]}

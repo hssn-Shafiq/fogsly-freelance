@@ -11,30 +11,26 @@ export interface User {
 // User data stored in users collection
 export interface UserData {
   uid: string;
-  email: string;
   name: string;
-  role: 'user' | 'admin' | 'moderator'; // System role (set by admin)
+  email: string;
   status: 'active' | 'inactive' | 'suspended';
+  role: 'user' | 'admin';
+  rank?: number; // Add rank field
   createdAt: Date;
   updatedAt: Date;
 }
 
 // User profile data stored in userProfile collection
 export interface UserProfile {
-  userId: string;
+  uid: string;
   name: string;
-  displayName?: string; // For ad personalization
+  displayName?: string;
   email: string;
-  role?: string;
+  role: string;
   city?: string;
   country?: string;
   phone?: string;
-  location?: string; // (legacy, for migration)
-  age?: number; // For ad personalization
   bio?: string;
-  avatarUrl?: string;
-  coverUrl?: string;
-  balance?: number; // FOG coins balance
   skills?: string[];
   social?: {
     linkedin?: string;
@@ -42,32 +38,21 @@ export interface UserProfile {
     dribbble?: string;
     github?: string;
   };
-  stats?: {
-    rating?: number;
-    reviews?: number;
-    projects?: number;
-    completionRate?: number;
-  };
-  portfolio?: Array<{
-    id: number;
-    title: string;
-    category: string;
-    imageUrl: string;
-  }>;
-  reviews?: Array<{
-    id: number;
-    client: string;
-    project: string;
-    rating: number;
-    comment: string;
-  }>;
-  activity?: Array<{
-    type: string;
-    content: string;
-    time: string;
-  }>;
+  avatarUrl?: string;
+  coverUrl?: string;
+  rank?: number; // Add rank field
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface UserRanking {
+  userId: string;
+  rank: number;
+  email: string;
+  name: string;
+  signupDate: Date;
+  isActive: boolean;
+  createdAt: Date;
 }
 
 // Auth form data types

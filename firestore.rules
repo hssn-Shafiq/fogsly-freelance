@@ -76,6 +76,43 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
     
+    // User wallets - users can only access their own wallet
+    match /userWallets/{walletId} {
+      allow read, write: if isAuthenticated() && isOwner(resource.data.userId);
+      allow read: if isAdmin(); // Admins can read all wallets
+    }
+    
+    // Wallet transfers - users can only access their own transfers
+    match /walletTransfers/{transferId} {
+      allow read, write: if isAuthenticated() && 
+        (isOwner(resource.data.fromUserId) || isOwner(resource.data.toUserId));
+      allow read: if isAdmin(); // Admins can read all transfers
+    }
+    
+    // Wallet balances - users can only access their own balance
+    match /walletBalances/{userId} {
+      allow read, write: if isAuthenticated() && isOwner(userId);
+      allow read: if isAdmin(); // Admins can read all balances
+    }
+    
+    // User earnings - users can only access their own earnings
+    match /userEarnings/{userId} {
+      allow read, write: if isAuthenticated() && isOwner(userId);
+      allow read: if isAdmin(); // Admins can read all earnings
+    }
+    
+    // Earning to wallet transfers - users can only access their own transfers
+    match /earningToWalletTransfers/{transferId} {
+      allow read, write: if isAuthenticated() && isOwner(resource.data.userId);
+      allow read: if isAdmin(); // Admins can read all transfers
+    }
+    
+    // Wallet transactions - users can only access their own transactions
+    match /walletTransactions/{transactionId} {
+      allow read, write: if isAuthenticated() && isOwner(resource.data.userId);
+      allow read: if isAdmin(); // Admins can read all transactions
+    }
+    
     // Default rule - deny all access to any other collections
     match /{document=**} {
       allow read, write: if false;

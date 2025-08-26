@@ -3,7 +3,8 @@ import { Wallet, Coins, Play } from 'lucide-react';
 import { Card, CardContent } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { getUserAdStats } from '../../firebase/services/adService';
-import { UserAdStats } from '../../firebase/types/ads';
+import { getUserEarnings } from '../../firebase/services/userEarningsService';
+import { UserAdStats, UserEarning } from '../../firebase/types/ads';
 import { User } from '../../firebase/types/user';
 import { formatFog, formatUsd, getFogCoinSettingsWithCache, formatFogWithUsdSync } from '../../utils/fogCoinUtils';
 import { FogCoinSettings } from '../../firebase/types/fogCoinSettings';
@@ -19,8 +20,8 @@ interface BalanceCardProps {
 
 const BalanceCard = React.memo(({ icon: Icon, title, amount, description, cta, onClick }: BalanceCardProps) => (
   <Card className="hover:shadow-md transition-shadow">
-    <CardContent className="p-4 pt-4">
-      <div className="flex justify-between items-start">
+    <CardContent className="p-4 pt-4 pb-2">
+      <div className="flex justify-between items-start mt-4">
         <div>
           <p className="text-sm font-medium text-[--color-text-secondary]">{title}</p>
           <p className="text-2xl font-bold text-[--color-text-primary] mt-1">{amount}</p>
@@ -44,6 +45,7 @@ interface ProfileBalanceCardsProps {
 
 const ProfileBalanceCards = React.memo(({ currentUser, navigate }: ProfileBalanceCardsProps) => {
   const [userStats, setUserStats] = useState<UserAdStats | null>(null);
+  const [userEarnings, setUserEarnings] = useState<UserEarning | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [fogSettings, setFogSettings] = useState<FogCoinSettings | null>(null);
 
@@ -55,11 +57,13 @@ const ProfileBalanceCards = React.memo(({ currentUser, navigate }: ProfileBalanc
       }
 
       try {
-        const [stats, settings] = await Promise.all([
+        const [stats, earnings, settings] = await Promise.all([
           getUserAdStats(currentUser.uid),
+          getUserEarnings(currentUser.uid),
           getFogCoinSettingsWithCache()
         ]);
         setUserStats(stats);
+        setUserEarnings(earnings);
         setFogSettings(settings);
       } catch (error) {
         console.error('Error loading data:', error);
@@ -108,10 +112,14 @@ const ProfileBalanceCards = React.memo(({ currentUser, navigate }: ProfileBalanc
     );
   }
 
-  // All earnings are stored in FOG coins, with dynamic conversion rates
-  const totalEarningsFog = userStats?.totalEarnings || 0;
-  const availableBalanceFog = userStats?.availableBalance || 0;
+  // ✅ NEW: Get earnings from centralized UserEarning collection (3 sources only)
+  const totalEarningsFog = userEarnings?.totalEarnings || 0;
+  const availableBalanceFog = userEarnings?.depositEarnings || 0;
+  const adsEarningsFog = userEarnings?.adsEarnings || 0;
+  // const transferEarningsFog = userEarnings?.transferEarnings || 0;
+  const referralEarningsFog = userEarnings?.referralEarnings || 0;
   const adsWatched = userStats?.totalAdsWatched || 0;
+  const todaysCount = userStats?.dailyWatchCount || userStats?.todaysCount || 0;
   const currentRate = fogSettings?.fogToUsdRate || 0.10;
 
   return (
@@ -120,7 +128,7 @@ const ProfileBalanceCards = React.memo(({ currentUser, navigate }: ProfileBalanc
         icon={Wallet} 
         title="Total Earnings" 
         amount={formatFog(totalEarningsFog)} 
-        description={`≈ ${formatUsd(totalEarningsFog * currentRate)} USD value`} 
+        description={`≈ ${formatUsd(totalEarningsFog * currentRate)} USD `} 
         cta="Withdraw"
         onClick={handleWithdraw}
       />
@@ -128,14 +136,14 @@ const ProfileBalanceCards = React.memo(({ currentUser, navigate }: ProfileBalanc
         icon={Coins} 
         title="Available Balance" 
         amount={formatFog(availableBalanceFog)} 
-        description={`≈ ${formatUsd(availableBalanceFog * currentRate)} ready to withdraw`} 
-        cta="Exchange"
+        description={`≈ ${formatUsd(availableBalanceFog * currentRate)} ready to use`} 
+        cta="Transfer Coins"
       />
       <BalanceCard 
         icon={Play} 
         title="Ads Watched" 
         amount={adsWatched.toString()} 
-        description={`${userStats?.dailyWatchCount || userStats?.todaysCount || 0} watched today`} 
+        description={`${todaysCount} watched today | ${formatFog(adsEarningsFog)} earned`} 
         cta="Watch More"
         onClick={handleWatchAds}
       />

@@ -8,7 +8,8 @@ import {
   ProfileTabContent,
   useProfileState
 } from '../components/profile';
-
+import WalletBalanceCard from '../components/wallet/WalletBalanceCard';
+import FogslyRankBanner from '@/components/badges/FogslyRankBanner';
 interface ProfilePageProps {
   navigate: (route: Route) => void;
   currentUser: FirebaseUser | null;
@@ -24,7 +25,7 @@ const ProfilePage = ({ navigate, currentUser }: ProfilePageProps) => {
   return (
     <div className="bg-[--color-bg-secondary] min-h-screen">
       <div className="container mx-auto px-4 py-8 pt-4">
-        
+
         {/* Loading State */}
         {state.isLoading ? (
           <div className="flex items-center justify-center min-h-[400px]">
@@ -44,20 +45,34 @@ const ProfilePage = ({ navigate, currentUser }: ProfilePageProps) => {
               onCoverUpload={actions.handleCoverUpload}
               isSaving={state.isSaving}
             />
-            
+
+           
+
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              
+
               {/* Left Sidebar */}
               <ProfileSidebar
                 userProfile={state.userProfile}
                 currentUser={currentUser}
               />
-              
+
               {/* Right Content Area */}
               <main className="lg:col-span-8">
+                {/* Wallet Balance Card */}
+                {/* {currentUser?.uid && (
+                  <div className="mb-8">
+                    <WalletBalanceCard
+                      userId={currentUser.uid}
+                      userName={currentUser.displayName || currentUser.email || 'User'}
+                      navigate={navigate}
+                    />
+                    
+                  </div>
+                )} */}
+
                 {/* Balance Cards */}
-                <ProfileBalanceCards 
+                <ProfileBalanceCards
                   currentUser={currentUser}
                   navigate={navigate}
                 />
@@ -72,6 +87,26 @@ const ProfilePage = ({ navigate, currentUser }: ProfilePageProps) => {
             </div>
           </>
         )}
+
+        {/* Wallet Modals */}
+        {/* {userWallet && (
+          <ShareProfileModal
+            isOpen={isShareModalOpen}
+            onClose={() => setIsShareModalOpen(false)}
+            wallet={userWallet}
+            userName={state.userProfile?.name || state.userProfile?.displayName || 'User'}
+          />
+        )}
+
+        {walletBalance && currentUser?.uid && (
+          <TransferCoinsModal
+            isOpen={isTransferModalOpen}
+            onClose={() => setIsTransferModalOpen(false)}
+            currentUserId={currentUser.uid}
+            balance={walletBalance}
+            onTransferComplete={handleTransferComplete}
+          />
+        )} */}
       </div>
     </div>
   );

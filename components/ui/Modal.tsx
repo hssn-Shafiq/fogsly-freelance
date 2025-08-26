@@ -8,9 +8,10 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  preventBackgroundClose?: boolean;
 }
 
-const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
+const Modal = ({ isOpen, onClose, title, children, preventBackgroundClose = false }: ModalProps) => {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -21,8 +22,8 @@ const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
             exit: { opacity: 0 },
             transition: { duration: 0.2 },
           }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-          onClick={onClose}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto"
+          onClick={preventBackgroundClose ? undefined : onClose}
         >
           <motion.div
             {...{
@@ -31,11 +32,11 @@ const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
               exit: { opacity: 0, scale: 0.95, y: 10 },
               transition: { type: 'spring', stiffness: 400, damping: 30 },
             }}
-            className="relative w-full max-w-md m-4"
+            className="relative w-full max-w-md my-8 mx-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <Card className="shadow-2xl">
-              <CardHeader className="flex flex-row items-center justify-between">
+            <Card className="shadow-2xl max-h-[90vh] flex flex-col">
+              <CardHeader className="flex flex-row items-center justify-between flex-shrink-0">
                 <CardTitle className="text-xl">{title}</CardTitle>
                 <button
                   onClick={onClose}
@@ -45,7 +46,7 @@ const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
                   <X className="w-5 h-5" />
                 </button>
               </CardHeader>
-              <CardContent>
+              <CardContent className="overflow-y-auto flex-1">
                 {children}
               </CardContent>
             </Card>
