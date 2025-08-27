@@ -1,75 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="FOGCOIN_LOGO-removebg-preview.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FOGSLY Freelance Marketplace</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Kalam:wght@700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        :root, .light {
-          --color-bg-primary: #FFFFFF;
-          --color-bg-secondary: #F1F5F9;
-          --color-bg-tertiary: #E2E8F0;
-          --color-bg-hero: #0b1c4a;
-          --color-text-hero: #fff;
-          --color-text-primary: #0F172A;
-          --color-text-secondary: #475569;
-          --color-primary: #3B82F6;
-          --color-accent: #06B6D4;
-          --color-border: #E2E8F0;
-          --color-card: #FFFFFF;
-          --color-success-bg: #F0FDF4;
-          --color-success-fg: #15803D;
-          --color-success-icon: #16A34A;
-        }
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="FOGCOIN_SITE_ICON.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FOGSLY Freelance Marketplace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Kalam:wght@700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./styles/animations.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root,
+    .light {
+      --color-bg-primary: #FFFFFF;
+      --color-bg-secondary: #F1F5F9;
+      --color-bg-tertiary: #E2E8F0;
+      --color-bg-hero: #0b1c4a;
+      --color-text-hero: #fff;
+      --color-text-primary: #0F172A;
+      --color-text-secondary: #475569;
+      --color-primary: #3B82F6;
+      --color-accent: #06B6D4;
+      --color-border: #E2E8F0;
+      --color-card: #FFFFFF;
+      --color-success-bg: #F0FDF4;
+      --color-success-fg: #15803D;
+      --color-success-icon: #16A34A;
+    }
 
-        .dark {
-          --color-bg-primary: #020617;
-          --color-bg-secondary: #0f172a;
-          --color-bg-tertiary: #1e293b;
-          --color-bg-hero: #0b1c4a;
-          --color-text-hero: #fff;
-          --color-text-primary: #F8FAFC;
-          --color-text-secondary: #94A3B8;
-          --color-primary: #60A5FA;
-          --color-accent: #22D3EE;
-          --color-border: #1e293b;
-          --color-card: #0f172a;
-          --color-success-bg: #052e16;
-          --color-success-fg: #86EFAC;
-          --color-success-icon: #4ADE80;
-        }
+    .dark {
+      --color-bg-primary: #020617;
+      --color-bg-secondary: #0f172a;
+      --color-bg-tertiary: #1e293b;
+      --color-bg-hero: #0b1c4a;
+      --color-text-hero: #fff;
+      --color-text-primary: #F8FAFC;
+      --color-text-secondary: #94A3B8;
+      --color-primary: #60A5FA;
+      --color-accent: #22D3EE;
+      --color-border: #1e293b;
+      --color-card: #0f172a;
+      --color-success-bg: #052e16;
+      --color-success-fg: #86EFAC;
+      --color-success-icon: #4ADE80;
+    }
 
-        .desert {
-          --color-bg-primary: #F3EFE4;
-          --color-bg-secondary: #EAE6D9;
-          --color-bg-tertiary: #E0DCCF;
-          --color-bg-hero: #2c2020;
-          --color-text-hero: #fff;
-          --color-text-primary: #2C2C2C;
-          --color-text-secondary: #5A5A5A;
-          --color-primary: #C85738;
-          --color-accent: #7DB1D0;
-          --color-border: #D4D0C3;
-          --color-card: #F3EFE4;
-          --color-success-bg: #e8f3e8;
-          --color-success-fg: #295229;
-          --color-success-icon: #4a754a;
-        }
-        
-        html {
-          font-family: 'Inter', sans-serif;
-        }
+    .desert {
+      --color-bg-primary: #F3EFE4;
+      --color-bg-secondary: #EAE6D9;
+      --color-bg-tertiary: #E0DCCF;
+      --color-bg-hero: #2c2020;
+      --color-text-hero: #fff;
+      --color-text-primary: #2C2C2C;
+      --color-text-secondary: #5A5A5A;
+      --color-primary: #C85738;
+      --color-accent: #7DB1D0;
+      --color-border: #D4D0C3;
+      --color-card: #F3EFE4;
+      --color-success-bg: #e8f3e8;
+      --color-success-fg: #295229;
+      --color-success-icon: #4a754a;
+    }
 
-        .font-kalam {
-          font-family: 'Kalam', cursive;
-        }
-    </style>
-<script type="importmap">
+    html {
+      font-family: 'Inter', sans-serif;
+    }
+
+    .font-kalam {
+      font-family: 'Kalam', cursive;
+    }
+  </style>
+  <script type="importmap">
 {
   "imports": {
     "react/": "https://esm.sh/react@^19.1.1/",
@@ -81,7 +85,7 @@
   }
 }
 </script>
-<script>
+  <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
@@ -99,18 +103,33 @@
       },
     };
   </script>
-<link rel="stylesheet" href="/index.css">
+  <link rel="stylesheet" href="/index.css">
 
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
 
-  gtag('config', 'G-BK08MG162K');
-</script>
+    gtag('config', 'G-BK08MG162K');
+  </script>
+
+  <!-- google console -->
+  <meta name="google-site-verification" content="5D7SrlGuxu71sxC_4U5QWU1hpt-Yg1EBe8qBsTRGxHs" />
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-BK08MG162K"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'G-BK08MG162K');
+  </script>
 </head>
+
 <body class="bg-[--color-bg-primary]">
-    <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
 </body>
+
 </html>
