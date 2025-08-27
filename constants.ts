@@ -5,6 +5,8 @@ import IconMarketplace from './components/icons/IconMarketplace';
 import IconFogCoin from './components/icons/IconFogCoin';
 import IconGlobe from './components/icons/IconGlobe';
 import IconSupport from './components/icons/IconSupport';
+import { AtomIcon } from './components/icons/AnimatedIcons/iconAtom';
+import { BadgeCheck } from './components/icons/AnimatedIcons/IconBadge';
 
 export const categories = [
   { name: 'Development & IT', icon: '💻', jobs: '1,245' },
@@ -22,9 +24,9 @@ export const featuredJobs = [
 ];
 
 export const topTalent = [
-  { name: 'Alex Johnson', role: 'UX Designer', rating: '4.9', projects: 42, skills: ['Figma', 'UI/UX', 'Prototyping'] },
-  { name: 'Sam Wilson', role: 'Fullstack Dev', rating: '4.8', projects: 35, skills: ['React', 'Node.js', 'TypeScript'] },
-  { name: 'Taylor Smith', role: 'Content Writer', rating: '5.0', projects: 28, skills: ['Copywriting', 'SEO', 'Blogging'] },
+  { name: 'Alex Johnson', role: 'UX Designer', rating: '4.9', projects: 42, skills: ['Figma', 'UI/UX', 'Prototyping'], url: 'https://images.unsplash.com/photo-1610088441520-4352457e7095?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
+  { name: 'Sam Wilson', role: 'Fullstack Dev', rating: '4.8', projects: 35, skills: ['React', 'Node.js', 'TypeScript'], url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
+  { name: 'Taylor Smith', role: 'Content Writer', rating: '5.0', projects: 28, skills: ['Copywriting', 'SEO', 'Blogging'], url: 'https://plus.unsplash.com/premium_photo-1672239496290-5061cfee7ebb?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8bWVufGVufDB8MXwwfHx8MA%3D%3D' },
 ];
 
 export const testimonials = [
@@ -52,12 +54,12 @@ export const benefits = [
     { 
       title: "AI-Powered Matching", 
       description: "Our algorithm connects you with ideal clients or freelancers in seconds",
-      icon: IconAiBot
+      icon: AtomIcon
     },
     { 
       title: "Secure Payments", 
       description: "Escrow protection ensures you only pay for satisfactory work",
-      icon: IconSecureLock
+      icon: BadgeCheck
     },
     { 
       title: "Hybrid Marketplace", 

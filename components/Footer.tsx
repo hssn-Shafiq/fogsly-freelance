@@ -1,5 +1,5 @@
 import React from 'react';
-import { Twitter, Linkedin, Youtube } from 'lucide-react';
+import { Twitter, Linkedin, Youtube, Facebook, Instagram,    } from 'lucide-react';
 import TiktokIcon from './TiktokIcon';
 import { type Route } from '../types';
 
@@ -8,10 +8,13 @@ interface FooterProps {
 }
 
 const socialLinks = [
+  { name: 'Facebook', icon: Facebook, href: '#' },
+  { name: 'Instagram', icon: Instagram, href: '#' },
+  // { name: 'LinkedIn', icon: Linkedin, href: '#' },
+  // { name: 'YouTube', icon: Youtube, href: '#' },
   { name: 'Twitter', icon: Twitter, href: '#' },
-  { name: 'LinkedIn', icon: Linkedin, href: '#' },
-  { name: 'YouTube', icon: Youtube, href: '#' },
-  { name: 'TikTok', icon: TiktokIcon, href: '#' },
+  // { name: 'Tiktok', icon: TiktokIcon, href: '#' },
+
 ];
 
 const companyLinks: { name: string; route: Route }[] = [
@@ -25,7 +28,7 @@ const platformLinks: { name: string; route: Route }[] = [
   { name: 'Features', route: 'features' },
   { name: 'Pricing', route: 'pricing' },
   { name: 'FOG Coins', route: 'fog-coins' },
-  { name: 'API', route: 'api' },
+  { name: 'Support', route: 'customer-service' },
 ];
 
 const supportLinks: { name: string; route: Route }[] = [

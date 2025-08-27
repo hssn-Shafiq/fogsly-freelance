@@ -12,13 +12,12 @@ import {
   LogOut,
   LogIn,
   Sparkles,
-  HeadphonesIcon
+  HeadphonesIcon,
 } from 'lucide-react';
 import { type Theme, type Route } from '../types';
 import { Button } from './ui/Button';
-import { User as FirebaseUser } from "../firebase/types/user";
+import { User as FirebaseUser } from '../firebase/types/user';
 import { getUserData } from '../firebase/services/userService';
-
 
 interface HeaderProps {
   currentTheme: Theme;
@@ -27,23 +26,15 @@ interface HeaderProps {
   isLoggedIn: boolean;
   onLogout: () => void;
   currentUser: FirebaseUser | null;
-  // Optional: decide whether to render a bottom nav bar on mobile
   enableBottomMobileBar?: boolean;
 }
 
-// const navLinks: { label: string; route: Route; icon: React.ReactNode }[] = [
-//   { label: 'Dashboard', route: 'dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
-//   { label: 'Earnings', route: 'earnings-dashboard', icon: <TrendingUp className="w-5 h-5" /> },
-//   { label: 'Events', route: 'events', icon: <Calendar className="w-5 h-5" /> },
-//   { label: 'Watch Ads', route: 'watch-ads', icon: <PlayCircle className="w-5 h-5" /> },
-//   { label: 'Pricing', route: 'pricing', icon: <BadgeDollarSign className="w-5 h-5" /> },
-// ];
 const navLinks: { label: string; route: Route; icon: React.ReactNode }[] = [
   { label: 'Dashboard', route: 'dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
   { label: 'Events', route: 'events', icon: <Calendar className="w-5 h-5" /> },
   { label: 'Watch Ads', route: 'watch-ads', icon: <PlayCircle className="w-5 h-5" /> },
   { label: 'Pricing', route: 'pricing', icon: <BadgeDollarSign className="w-5 h-5" /> },
-  { label: 'Support', route: 'customer-service', icon: <HeadphonesIcon className="w-5 h-5" /> },
+  { label: 'Buy Coin', route: 'fog-coins', icon: <HeadphonesIcon className="w-5 h-5" /> },
 ];
 
 const themeSwatches: { value: Theme; label: string; colorClass: string }[] = [
@@ -74,7 +65,6 @@ export const Header: React.FC<HeaderProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
-    // Check if current user is admin
   useEffect(() => {
     const checkAdminStatus = async () => {
       if (currentUser?.uid) {
@@ -89,12 +79,9 @@ export const Header: React.FC<HeaderProps> = ({
         setIsAdmin(false);
       }
     };
-
     checkAdminStatus();
   }, [currentUser]);
 
-  console.log("current user is ", currentUser);
-  // Lock body scroll when mobile menu is open
   useEffect(() => {
     if (mobileOpen) {
       document.documentElement.classList.add('overflow-hidden', 'touch-none');
@@ -103,7 +90,6 @@ export const Header: React.FC<HeaderProps> = ({
     }
   }, [mobileOpen]);
 
-  // Close on ESC
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setMobileOpen(false);
@@ -123,7 +109,6 @@ export const Header: React.FC<HeaderProps> = ({
     setMobileOpen(false);
   };
 
-    // Handle profile/admin navigation
   const handleProfileClick = () => {
     if (isAdmin) {
       navigate('admin');
@@ -135,24 +120,22 @@ export const Header: React.FC<HeaderProps> = ({
 
   const ThemeSelector = () => (
     <div className="flex items-center gap-2">
-      {/* Desktop (pill group) */}
       <div className="hidden md:flex items-center gap-1 px-2 py-1 rounded-full bg-[--color-bg-secondary]/70 backdrop-blur-sm">
         {themeSwatches.map(ts => (
           <motion.button
             key={ts.value}
             onClick={() => setCurrentTheme(ts.value)}
-            className={`w-6 h-6 rounded-full transition-all border border-transparent ${currentTheme === ts.value
+            className={`w-6 h-6 rounded-full transition-all border border-transparent ${
+              currentTheme === ts.value
                 ? 'ring-2 ring-[--color-primary] ring-offset-2 ring-offset-[--color-bg-secondary]'
                 : 'hover:ring-2 hover:ring-[--color-primary]/50'
-              } ${ts.colorClass}`}
+            } ${ts.colorClass}`}
             aria-label={`${ts.label} theme`}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           />
         ))}
       </div>
-
-      {/* Mobile (compact single icon cycling) */}
       <motion.button
         onClick={() => {
           const order: Theme[] = ['light', 'dark', 'desert'];
@@ -182,20 +165,20 @@ export const Header: React.FC<HeaderProps> = ({
         role="banner"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-          {/* Logo */}
           <motion.button
-            onClick={() => { navigate('home'); setMobileOpen(false); }}
+            onClick={() => {
+              navigate('home');
+              setMobileOpen(false);
+            }}
             initial={{ opacity: 0, x: -12 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-2 group focus:outline-none focus:ring-2 focus:ring-[--color-primary] rounded"
-            aria-label="Go to homepage"
+            className="flex items-center gap-2 group focus:outline-none"
           >
-            <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-[--color-primary] via-[--color-primary] to-[--color-accent] bg-clip-text text-transparent group-hover:scale-[1.03] transition-transform">
+            <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-[--color-primary] to-[--color-accent] bg-clip-text text-transparent">
               FOGSLY
             </span>
           </motion.button>
 
-          {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8" aria-label="Primary">
             {navLinks.map(link => (
               <motion.button
@@ -203,19 +186,15 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={() => handleNavClick(link.route)}
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.95 }}
-                className="relative text-sm font-medium text-[--color-text-primary]/80 hover:text-[--color-primary] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[--color-primary] rounded"
+                className="relative text-sm font-medium text-[--color-text-primary]/80 hover:text-[--color-primary] transition-colors"
               >
                 {link.label}
-                <span className="absolute -bottom-1 left-0 h-0.5 w-0 bg-[--color-primary] transition-all group-hover:w-full" />
               </motion.button>
             ))}
           </nav>
 
-          {/* Right Section */}
           <div className="flex items-center gap-3">
             <ThemeSelector />
-
-            {/* Desktop Auth / Profile */}
             <div className="hidden md:flex items-center gap-2">
               {isLoggedIn ? (
                 <>
@@ -223,59 +202,32 @@ export const Header: React.FC<HeaderProps> = ({
                     onClick={handleProfileClick}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.92 }}
-                    className="w-9 h-9 rounded-full flex items-center justify-center bg-[--color-bg-secondary]/70 border border-white/10 hover:border-[--color-primary]/50 transition"
-                   aria-label={isAdmin ? "Admin Panel" : "Profile"}
-                    title={isAdmin ? "Go to Admin Panel" : "Go to Profile"}
+                    className="w-9 h-9 rounded-full flex items-center justify-center bg-[--color-bg-secondary]/70 border border-white/10"
                   >
                     <User className="w-5 h-5 text-[--color-text-primary]" />
                   </motion.button>
-                  <Button variant="ghost" onClick={onLogout} className="flex items-center gap-1">
+                  <Button variant="ghost" onClick={onLogout}>
                     <LogOut className="w-4 h-4" /> Log Out
                   </Button>
                 </>
               ) : (
                 <>
-                  <Button variant="ghost" onClick={() => navigate('auth')} className="flex items-center gap-1">
+                  <Button variant="ghost" onClick={() => navigate('auth')}>
                     <LogIn className="w-4 h-4" /> Log In
                   </Button>
-                  <Button onClick={() => navigate('auth')} className="relative overflow-hidden group">
-                    <span className="absolute inset-0 bg-gradient-to-r from-[--color-primary] to-[--color-accent] opacity-80 group-hover:opacity-100 transition" />
-                    <span className="relative">Sign Up</span>
+                  <Button onClick={() => navigate('auth')}>
+                    <span>Sign Up</span>
                   </Button>
                 </>
               )}
             </div>
-
-            {/* Mobile auth quick actions (inline, not inside menu) */}
             <div className="flex md:hidden items-center gap-2">
-              {isLoggedIn ? (
-                <motion.button
-                  onClick={() => navigate('profile')}
-                  whileTap={{ scale: 0.9 }}
-                  className="w-9 h-9 rounded-full flex items-center justify-center bg-[--color-bg-secondary]/70 border border-white/10 hover:border-[--color-primary]/50 transition"
-                  aria-label="Profile"
-                >
-                  <User className="w-5 h-5 text-[--color-text-primary]" />
-                </motion.button>
-              ) : (
-                <motion.button
-                  onClick={() => navigate('auth')}
-                  whileTap={{ scale: 0.9 }}
-                  className="px-3 h-9 inline-flex items-center gap-1 rounded-full bg-[--color-primary] text-[--color-text-primary] text-white text-sm font-medium shadow-sm hover:bg-[--color-primary] focus:outline-none focus:ring-2 focus:ring-[--color-primary]"
-                  aria-label="Log in"
-                >
-                  <LogIn className="w-4 h-4" />
-                  <span>Login</span>
-                </motion.button>
-              )}
-
-              {/* Hamburger */}
               <motion.button
                 onClick={toggleMobile}
                 aria-expanded={mobileOpen}
                 aria-label="Toggle menu"
                 whileTap={{ scale: 0.9 }}
-                className="w-10 h-10 rounded-xl flex items-center justify-center border border-white/10 bg-[--color-bg-secondary]/60 backdrop-blur-sm hover:border-[--color-primary]/50 transition"
+                className="w-10 h-10 rounded-xl flex items-center justify-center border border-white/10 bg-[--color-bg-secondary]"
               >
                 {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </motion.button>
@@ -283,35 +235,32 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Mobile Overlay Panel */}
+        {/* Mobile Sidebar */}
         <AnimatePresence>
           {mobileOpen && (
             <>
-              {/* Backdrop */}
               <motion.div
                 key="backdrop"
-                className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+                className="fixed inset-0 z-40 bg-black/50"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setMobileOpen(false)}
-                aria-hidden="true"
               />
-              {/* Panel */}
               <motion.div
                 key="panel"
-                className="fixed top-0 right-0 bottom-0 z-50 w-[80%] max-w-sm bg-[--color-bg-primary]/95 backdrop-blur-xl border-l border-white/10 flex flex-col"
+                className="fixed top-0 right-0 bottom-0 z-50 w-[80%] max-w-sm h-screen bg-[--color-bg-primary] border-l border-[--color-border] flex flex-col"
                 initial={{ x: '100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
                 transition={{ type: 'spring', stiffness: 260, damping: 28 }}
-                role="dialog"
-                aria-modal="true"
-                aria-label="Mobile navigation"
               >
-                <div className="h-16 flex items-center justify-between px-5 border-b border-white/5">
+                <div className="h-16 flex items-center justify-between px-5 border-b border-[--color-border]">
                   <button
-                    onClick={() => { navigate('home'); setMobileOpen(false); }}
+                    onClick={() => {
+                      navigate('home');
+                      setMobileOpen(false);
+                    }}
                     className="text-lg font-bold bg-gradient-to-r from-[--color-primary] to-[--color-accent] bg-clip-text text-transparent"
                   >
                     FOGSLY
@@ -319,190 +268,77 @@ export const Header: React.FC<HeaderProps> = ({
                   <motion.button
                     whileTap={{ scale: 0.9 }}
                     onClick={() => setMobileOpen(false)}
-                    aria-label="Close menu"
-                    className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-white/5 transition"
+                    className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-white/5"
                   >
                     <X className="w-5 h-5" />
                   </motion.button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto px-5 py-6 space-y-8">
-                  <div>
-                    <p className="text-xs uppercase tracking-wider text-[--color-text-primary]/50 mb-3">
-                      Navigation
-                    </p>
-                    <ul className="space-y-2">
-                      {navLinks.map(link => {
-                        const active = false; // Insert logic if you track active route
-                        return (
-                          <li key={link.label}>
-                            <motion.button
-                              onClick={() => handleNavClick(link.route)}
-                              whileTap={{ scale: 0.97 }}
-                              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-left transition group border border-transparent ${active
-                                  ? 'bg-[--color-primary]/15 text-[--color-primary] border-[--color-primary]/30'
-                                  : 'bg-white/[0.02] hover:bg-white/[0.06] text-[--color-text-primary]/90'
-                                }`}
-                            >
-                              <span className="text-[--color-primary]">{link.icon}</span>
-                              {link.label}
-                              <span className="ml-auto opacity-0 group-hover:opacity-100 text-[--color-primary] transition">
-                                →
-                              </span>
-                            </motion.button>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-
-                  <div>
-                    <p className="text-xs uppercase tracking-wider text-[--color-text-primary]/50 mb-3">
-                      Theme
-                    </p>
-                    <div className="flex gap-3">
-                      {themeSwatches.map(ts => (
+                <div className="flex-1 overflow-y-auto px-5 py-6 space-y-6">
+                  <ul className="space-y-2">
+                    {navLinks.map(link => (
+                      <li key={link.label}>
                         <motion.button
-                          key={ts.value}
-                          onClick={() => setCurrentTheme(ts.value)}
-                          whileTap={{ scale: 0.9 }}
-                          className={`relative w-12 h-12 rounded-2xl border flex items-center justify-center transition ${currentTheme === ts.value
-                              ? 'border-[--color-primary] ring-2 ring-[--color-primary]/40'
-                              : 'border-white/10 hover:border-[--color-primary]/50'
-                            } ${ts.colorClass}`}
-                          aria-label={`${ts.label} theme`}
+                          onClick={() => handleNavClick(link.route)}
+                          whileTap={{ scale: 0.97 }}
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-left hover:bg-white/[0.06] text-[--color-text-primary]"
                         >
-                          {currentTheme === ts.value && (
-                            <motion.div
-                              layoutId="themeActive"
-                              className="absolute inset-0 rounded-2xl ring-2 ring-[--color-primary] pointer-events-none"
-                            />
-                          )}
+                          {link.icon}
+                          {link.label}
                         </motion.button>
-                      ))}
-                    </div>
-                  </div>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
 
-                <div className="border-t border-white/5 p-5 space-y-4">
+                {/* Auth Buttons inside Sidebar */}
+                <div className="p-5 border-t border-[--color-border] space-y-3">
                   {isLoggedIn ? (
                     <>
                       <Button
-                        onClick={() => {
-                          navigate('profile');
-                          setMobileOpen(false);
-                        }}
-                        className="w-full flex items-center gap-2 justify-center"
-                        variant="secondary"
+                        variant="outline"
+                        className="w-full flex items-center justify-center gap-2"
+                        onClick={handleProfileClick}
                       >
                         <User className="w-4 h-4" /> Profile
                       </Button>
                       <Button
-                        onClick={() => {
-                          onLogout();
-                          setMobileOpen(false);
-                        }}
                         variant="ghost"
-                        className="w-full flex items-center gap-2 justify-center text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                        className="w-full flex items-center justify-center gap-2"
+                        onClick={onLogout}
                       >
                         <LogOut className="w-4 h-4" /> Log Out
                       </Button>
                     </>
                   ) : (
-                    <div className="flex flex-col gap-3">
+                    <>
                       <Button
-                        variant="outline"
+                        variant="ghost"
+                        className="w-full flex items-center justify-center gap-2"
                         onClick={() => {
                           navigate('auth');
                           setMobileOpen(false);
                         }}
-                        className="w-full relative overflow-hidden"
                       >
-                        <span className="absolute inset-0 bg-gradient-to-r from-[--color-primary] to-[--color-accent] opacity-90" />
-                        <span className="relative flex items-center gap-2 justify-center font-medium">
-                          Login
-                        </span>
+                        <LogIn className="w-4 h-4" /> Log In
                       </Button>
                       <Button
+                        className="w-full"
                         onClick={() => {
                           navigate('auth');
                           setMobileOpen(false);
                         }}
-                        className="w-full relative overflow-hidden"
                       >
-                        <span className="absolute inset-0 bg-gradient-to-r from-[--color-primary] to-[--color-accent] opacity-90" />
-                        <span className="relative flex items-center gap-2 justify-center font-medium">
-                          Create Account
-                        </span>
+                        Sign Up
                       </Button>
-                    </div>
+                    </>
                   )}
-                  <p className="text-[10px] text-center text-[--color-text-primary]/40">
-                    © {new Date().getFullYear()} FOGSLY. All rights reserved.
-                  </p>
                 </div>
               </motion.div>
             </>
           )}
         </AnimatePresence>
       </header>
-
-      {/* Optional Bottom Mobile Navigation */}
-      {enableBottomMobileBar && (
-        <div className="md:hidden fixed bottom-2 inset-x-0 z-40 flex justify-center pointer-events-none">
-          <nav
-            aria-label="Secondary mobile"
-            className="pointer-events-auto mx-4 rounded-2xl bg-[--color-bg-primary]/85 backdrop-blur-xl border border-white/10 shadow-lg px-3 py-2 flex justify-between gap-1 w-full max-w-md"
-          >
-            {navLinks.map(link => {
-              // If you have active route tracking, replace "false" with route match check.
-              const active = false;
-              return (
-                <button
-                  key={link.label}
-                  onClick={() => handleNavClick(link.route)}
-                  className={`flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-xl text-[11px] font-medium transition relative ${active
-                      ? 'text-[--color-primary] bg-[--color-primary]/15'
-                      : 'text-[--color-text-primary]/70 hover:text-[--color-text-primary]'
-                    }`}
-                >
-                  <span className="w-5 h-5">
-                    {React.cloneElement(link.icon as React.ReactElement, {
-                      className: `w-5 h-5 ${active ? 'text-[--color-primary]' : 'text-[--color-text-primary]/70'
-                        }`
-                    })}
-                  </span>
-                  {link.label.split(' ')[0]}
-                  {active && (
-                    <motion.span
-                      layoutId="mobileBottomActive"
-                      className="absolute inset-0 rounded-xl ring-1 ring-[--color-primary]/40 pointer-events-none"
-                    />
-                  )}
-                </button>
-              );
-            })}
-            {isLoggedIn ? (
-              <button
-                onClick={() => navigate('profile')}
-                className="flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-xl text-[11px] font-medium text-[--color-text-primary]/70 hover:text-[--color-text-primary]"
-              >
-                <User className="w-5 h-5" />
-                Me
-              </button>
-            ) : (
-              <button
-                onClick={() => navigate('auth')}
-                className="flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-xl text-[11px] font-medium text-[--color-primary] bg-[--color-primary]/15"
-              >
-                <LogIn className="w-5 h-5" />
-                Login
-              </button>
-            )}
-          </nav>
-        </div>
-      )}
-      {/* Spacer so content not hidden behind fixed header */}
       <div className="h-16" />
     </>
   );

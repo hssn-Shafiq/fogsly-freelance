@@ -17,12 +17,12 @@ const tabs: { id: Tab; label: string }[] = [
 const ProfileTabs = React.memo(({ activeTab, onTabChange }: ProfileTabsProps) => {
   return (
     <div className="border-b border-[--color-border]" id="profile-tabs">
-      <nav className="flex px-4 space-x-2">
+      <nav className="flex px-4 space-x-2 md:space-x-2 overflow-x-auto scrollbar-hide">
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
-            className={`px-3 py-3 text-sm font-medium capitalize transition-colors relative ${
+            className={`px-3 py-3 text-sm font-medium capitalize transition-colors relative whitespace-nowrap flex-shrink-0 ${
               activeTab === tab.id 
                 ? 'text-[--color-primary]' 
                 : 'text-[--color-text-secondary] hover:text-[--color-text-primary]'
