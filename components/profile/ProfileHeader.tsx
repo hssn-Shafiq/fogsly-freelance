@@ -84,6 +84,8 @@ const ProfileHeader = React.memo(({
     }
   };
 
+
+
   return (
     <>
       <Card className="mb-8 overflow-visible">
@@ -200,8 +202,24 @@ const ProfileHeader = React.memo(({
           </div>
 
           <div className="">
-            {/* <FogslyRankBanner rank={3} tier="legend" label="Legend" compact /> */}
-            <div className="pt-2 buttons-follow flex items-center gap-2 mt-4 lg:mt-0">
+            {userProfile.rank ? (
+              userProfile.rank <= 3 ? (
+                <FogslyRankBanner rank={userProfile.rank} tier="legend" label="Legend" compact />
+              ) : (userProfile.rank > 3 && userProfile.rank <= 7) ? (
+                <FogslyRankBanner rank={userProfile.rank} tier="master" label="Master" compact />
+              ) : (userProfile.rank > 7 && userProfile.rank <= 56) ? (
+                <FogslyRankBanner rank={userProfile.rank} tier="vanguard" label="Vanguard" compact />
+              ) : (userProfile.rank > 56 && userProfile.rank <= 245) ? (
+                <FogslyRankBanner rank={userProfile.rank} tier="earlybird" label="EarlyBird" compact />
+              ) : (userProfile.rank > 245 && userProfile.rank <= 678) ? (
+                <FogslyRankBanner rank={userProfile.rank} tier="champion" label="Champion" compact />
+              ) : (
+                <FogslyRankBanner rank={userProfile.rank} tier="rookie" label="Rookie" compact />
+              )
+            ) : (
+              <FogslyRankBanner rank={3} tier="rookie" label="Rookie" compact />
+            )}
+            <div className="pt-4 buttons-follow flex items-center gap-2 mt-4 lg:mt-0">
               <Button variant="outline">Send Message</Button>
               <Button>Follow</Button>
               <Button variant="ghost" size="icon">
