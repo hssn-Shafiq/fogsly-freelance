@@ -52,7 +52,7 @@ const Hero = ({ navigate }: { navigate: (route: Route) => void }) => {
               transition: { delay: 0.3, duration: 0.5 },
             }}
           >
-            <Button size="lg" className="shadow-lg hover:shadow-[--color-primary]/30 transition-shadow">
+            <Button size="lg" className="shadow-lg hover:bg-[--color-bg-primary] hover:text-[--color-primary] hover:shadow-[--color-primary]/30 transition-shadow">
               Freelance Hub
             </Button>
             <Button size="lg" className="text-[--color-text-hero] hover:text-[--color-primary]" variant="outline">
