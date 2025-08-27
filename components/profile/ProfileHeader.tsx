@@ -142,9 +142,9 @@ const ProfileHeader = React.memo(({
           />
         </div>
 
-        <div className="p-6 bg-[--color-card] flex flex-col lg:flex-row items-center lg:items-end relative">
+        <div className="p-2 lg:p-6 bg-[--color-card] flex flex-col lg:flex-row items-center lg:items-end relative">
           {/* Avatar */}
-          <div className="absolute left-6 -top-16 lg:static lg:-mt-24 relative">
+          <div className="absolute left-1 -top-8 lg:static lg:-mt-24 relative">
             <div className="w-32 h-32 rounded-full bg-[--color-bg-tertiary] border-4 border-[--color-card] flex items-center justify-center text-5xl font-bold text-[--color-text-secondary] ring-4 ring-[--color-card] overflow-hidden   relative">
               {userProfile?.avatarUrl ? (
                 <img
@@ -169,7 +169,7 @@ const ProfileHeader = React.memo(({
             <Button
               variant="ghost"
               size="icon"
-              className="absolute bottom-8 left-10 bg-black/50 hover:bg-black text-white rounded-full w-6 h-6 shadow-lg"
+              className="absolute bottom-0 lg:bottom-10 left-10 bg-black/50 hover:bg-black text-white rounded-full w-6 h-6 shadow-lg"
               onClick={handleAvatarClick}
               disabled={isSaving || isAvatarUploading || isCoverUploading}
             >
@@ -186,8 +186,8 @@ const ProfileHeader = React.memo(({
             />
           </div>
 
-          <div className="flex-1 text-center lg:text-left mt-10 lg:mt-0 lg:ml-6">
-            <h1 className="text-3xl font-bold text-[--color-text-primary]">
+          <div className="flex-1 text-center lg:text-left mt-0 lg:mt-0 lg:ml-6 ">
+            <h1 className="text-3xl font-bold text-[--color-text-primary] ">
               {(userProfile?.name || currentUser?.displayName || 'User').toUpperCase()}
             </h1>
             <p className="text-[--color-text-secondary]">{userProfile?.role || 'User'}</p>

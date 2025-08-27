@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 
@@ -12,7 +11,7 @@ const stats = [
 const StatsBar = () => {
   return (
     <motion.section
-      className="bg-[--color-bg-primary] shadow-lg relative z-20 mt-6 mx-4 md:mx-auto max-w-5xl rounded-xl border border-[--color-border]"
+      className="bg-[--color-bg-primary] shadow-lg relative z-20 mt-3 md:mt-6 mx-4 md:mx-auto max-w-5xl rounded-xl border border-[--color-border]"
       {...{
         initial: { opacity: 0, y: 40 },
         animate: { opacity: 1, y: 0 },

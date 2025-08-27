@@ -14,9 +14,9 @@ const WhyChooseUs = () => {
             viewport: { once: true },
             transition: { duration: 0.5 },
           }}
-          className="text-center mb-12"
+          className="text-center mb-8"
         >
-          <h2 className="text-3xl font-bold mb-4 text-[--color-text-primary]">Why Choose FOGSLY</h2>
+          <h2 className="text-3xl font-bold mb-2 text-[--color-text-primary]">Why Choose FOGSLY</h2>
           <p className="text-[--color-text-secondary] max-w-2xl mx-auto">
             We're building the most flexible and rewarding platform for modern professionals
           </p>
