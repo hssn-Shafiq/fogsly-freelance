@@ -6,12 +6,25 @@ import { motion } from "framer-motion";
  */
 
 const TIERS = {
+  legend: {
+    name: "FOGSLY Legend",
+    bg: "from-yellow-400 via-amber-500 to-orange-600", // Gold gradient - matches .bg-rank-legend
+    frame: "bg-gradient-to-r from-yellow-200 via-amber-100 to-orange-200",
+    glow: "shadow-[0_0_60px_rgba(251,191,36,0.75)]",
+    text: "text-yellow-900",
+    accent: "bg-yellow-400",
+    icon: (
+      <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor" aria-hidden>
+        <path d="M12 2l3 7h7l-5.5 4.5L18 22l-6-4-6 4 1.5-8.5L2 9h7l3-7z" />
+      </svg>
+    ),
+  },
   master: {
     name: "FOGSLY Master",
-    bg: "from-yellow-600 via-amber-500 to-yellow-700", // gold
-    frame: "bg-gradient-to-r from-yellow-200 via-yellow-100 to-yellow-300",
-    glow: "shadow-[0_0_60px_rgba(255,215,0,0.75)]",
-    text: "text-yellow-50",
+    bg: "from-yellow-300 via-yellow-400 to-yellow-600", // Yellow gradient - matches .bg-rank-master
+    frame: "bg-gradient-to-r from-yellow-100 via-yellow-200 to-yellow-300",
+    glow: "shadow-[0_0_60px_rgba(250,204,21,0.75)]",
+    text: "text-yellow-900",
     accent: "bg-yellow-300",
     icon: (
       <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor" aria-hidden>
@@ -21,10 +34,10 @@ const TIERS = {
   },
   vanguard: {
     name: "FOGSLY Vanguard",
-    bg: "from-gray-400 via-gray-300 to-gray-500", // silver
-    frame: "bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100",
-    glow: "shadow-[0_0_60px_rgba(192,192,192,0.75)]",
-    text: "text-gray-50",
+    bg: "from-gray-300 via-gray-400 to-gray-600", // Silver gradient - matches .bg-rank-vanguard
+    frame: "bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300",
+    glow: "shadow-[0_0_60px_rgba(209,213,219,0.75)]",
+    text: "text-gray-800",
     accent: "bg-gray-300",
     icon: (
       <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor" aria-hidden>
@@ -34,37 +47,24 @@ const TIERS = {
   },
   earlybird: {
     name: "#FOGSLYEarlyBird",
-    bg: "from-orange-900 via-amber-700 to-yellow-800", // bronze/brown
-    frame: "bg-gradient-to-r from-amber-200 via-orange-100 to-yellow-200",
-    glow: "shadow-[0_0_60px_rgba(205,127,50,0.75)]",
-    text: "text-amber-50",
-    accent: "bg-orange-300",
+    bg: "from-orange-500 via-orange-600 to-orange-700", // Orange gradient - matches .bg-rank-earlybird
+    frame: "bg-gradient-to-r from-orange-200 via-orange-300 to-orange-400",
+    glow: "shadow-[0_0_60px_rgba(249,115,22,0.75)]",
+    text: "text-orange-900",
+    accent: "bg-orange-400",
     icon: (
       <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor" aria-hidden>
         <path d="M22 12s-4-2-7-2c-3.87 0-7 3.13-7 7 0 0-4-2-6-2 2-3 6-10 13-10 4 0 7 2 7 2l-2 5z" />
       </svg>
     ),
   },
-  legend: {
-    name: "FOGSLY Legend",
-    bg: "from-purple-700 via-violet-600 to-indigo-800", // royal purple
-    frame: "bg-gradient-to-r from-purple-200 via-violet-100 to-indigo-200",
-    glow: "shadow-[0_0_60px_rgba(138,43,226,0.75)]",
-    text: "text-purple-50",
-    accent: "bg-purple-400",
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor" aria-hidden>
-        <path d="M12 2l3 7h7l-5.5 4.5L18 22l-6-4-6 4 1.5-8.5L2 9h7l3-7z" />
-      </svg>
-    ),
-  },
   champion: {
     name: "FOGSLY Champion",
-    bg: "from-blue-700 via-sky-600 to-blue-800", // deep blue
-    frame: "bg-gradient-to-r from-sky-200 via-blue-100 to-sky-200",
-    glow: "shadow-[0_0_60px_rgba(30,144,255,0.75)]",
-    text: "text-blue-50",
-    accent: "bg-sky-400",
+    bg: "from-blue-500 via-blue-600 to-blue-800", // Blue gradient - matches .bg-rank-champion
+    frame: "bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400",
+    glow: "shadow-[0_0_60px_rgba(59,130,246,0.75)]",
+    text: "text-blue-900",
+    accent: "bg-blue-400",
     icon: (
       <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor" aria-hidden>
         <path d="M12 2l4 8h8l-6 6 2 8-8-5-8 5 2-8-6-6h8l4-8z" />
@@ -73,11 +73,11 @@ const TIERS = {
   },
   rookie: {
     name: "FOGSLY Rookie",
-    bg: "from-green-700 via-emerald-600 to-green-800", // green
-    frame: "bg-gradient-to-r from-green-200 via-emerald-100 to-green-200",
-    glow: "shadow-[0_0_60px_rgba(50,205,50,0.75)]",
-    text: "text-green-50",
-    accent: "bg-green-400",
+    bg: "from-emerald-500 via-emerald-600 to-emerald-800", // Green gradient - matches .bg-rank-rookie
+    frame: "bg-gradient-to-r from-emerald-200 via-emerald-300 to-emerald-400",
+    glow: "shadow-[0_0_60px_rgba(16,185,129,0.75)]",
+    text: "text-emerald-900",
+    accent: "bg-emerald-400",
     icon: (
       <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor" aria-hidden>
         <path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10z" />
@@ -91,7 +91,7 @@ const shineVariants = {
   animate: {
     x: "150%",
     opacity: [0, 1, 0],
-    transition: { duration: 2, ease: "easeInOut", repeat: Infinity, repeatDelay: 3 },
+    transition: { duration: 2, ease: "easeInOut" as const, repeat: Infinity, repeatDelay: 3 },
   },
 };
 
@@ -101,7 +101,7 @@ const popIn = {
     scale: 1,
     rotate: 0,
     opacity: 1,
-    transition: { type: "spring", stiffness: 280, damping: 20 },
+    transition: { type: "spring" as const, stiffness: 280, damping: 20 },
   },
 };
 
@@ -109,7 +109,7 @@ const floatPulse = {
   animate: {
     y: [0, -4, 0],
     scale: [1, 1.05, 1],
-    transition: { repeat: Infinity, duration: 3, ease: "easeInOut" },
+    transition: { repeat: Infinity, duration: 3, ease: "easeInOut" as const },
   },
 };
 
@@ -124,18 +124,18 @@ function FogslyRankBanner({ rank, tier = "master", label, compact = false }) {
         variants={popIn}
         initial="initial"
         animate="animate"
-        className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${t.text} ${t.glow}`}
+        className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${t.glow}`}
         style={{
-          backgroundImage: "linear-gradient(90deg, rgb(0 0 0 / 90%), rgb(20 20 20 / 89%))",
+          backgroundImage: `linear-gradient(90deg, ${t.bg.replace('from-', '').replace(' via-', ', ').replace(' to-', ', ')})`,
           backdropFilter: "blur(6px)",
-          border: "1px solid rgba(255,255,255,0.2)",
-          width: "65%"
+          border: "1px solid rgba(255,255,255,0.3)",
+          width: "80%"
         }}
       >
-        <span className={`inline-flex items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-bold ${t.text} ${t.accent} bg-opacity-90 animate-pulse`}>{rankText}</span>
+        <span className={`inline-flex items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-bold text-white bg-black/30 backdrop-blur-sm animate-pulse`}>{rankText}</span>
         <span className="flex items-center gap-1.5">
-          <span className="opacity-90 animate-spin-slow">{t.icon}</span>
-          <span className="tracking-wide drop-shadow-lg">{textLabel}</span>
+          <span className={`opacity-90 animate-spin-slow ${t.text}`}>{t.icon}</span>
+          <span className={`tracking-wide drop-shadow-lg ${t.text}`}>{textLabel}</span>
         </span>
       </motion.span>
     );
@@ -161,23 +161,23 @@ function FogslyRankBanner({ rank, tier = "master", label, compact = false }) {
             <motion.div variants={floatPulse} animate="animate" className="flex items-center gap-4">
               <div className="relative">
                 <div className={`absolute -inset-1 rounded-full blur-xl opacity-70 ${t.accent}`} />
-                <div className="relative rounded-full bg-black/30 backdrop-blur-sm border border-white/30 w-20 h-20 flex items-center justify-center">
+                <div className="relative rounded-full bg-white/20 backdrop-blur-sm border border-white/40 w-20 h-20 flex items-center justify-center">
                   <span className="text-white font-extrabold text-2xl drop-shadow-lg">{rankText}</span>
                 </div>
               </div>
               <div className="hidden md:flex items-center text-white font-bold">
-                <span className="mr-2 opacity-90 animate-bounce">{t.icon}</span>
-                <span className="text-xl md:text-3xl tracking-wide drop-shadow-md">{textLabel}</span>
+                <span className="mr-2 opacity-90 animate-bounce text-white">{t.icon}</span>
+                <span className="text-xl md:text-3xl tracking-wide drop-shadow-md text-white">{textLabel}</span>
               </div>
             </motion.div>
 
             <motion.div initial={{ x: 60, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ type: "spring", stiffness: 200, damping: 18 }} className="flex items-center gap-2">
-              <span className="hidden md:inline text-white/80">Tier:</span>
-              <span className="inline-flex items-center gap-2 rounded-full px-5 py-2 font-bold text-sm md:text-base text-black bg-white/95 shadow-lg">
+              <span className="hidden md:inline text-white/90">Tier:</span>
+              <span className={`inline-flex items-center gap-2 rounded-full px-5 py-2 font-bold text-sm md:text-base ${t.text} bg-white/95 shadow-lg`}>
+                {tier === "legend" && "Top 5"}
                 {tier === "master" && "Top 20"}
                 {tier === "vanguard" && "#21 – #100"}
                 {tier === "earlybird" && "#101 – #300"}
-                {tier === "legend" && "Top 5"}
                 {tier === "champion" && "#301 – #1000"}
                 {tier === "rookie" && "#1001+"}
               </span>
@@ -186,8 +186,8 @@ function FogslyRankBanner({ rank, tier = "master", label, compact = false }) {
 
           <div className="mt-4 md:hidden text-center text-white font-semibold">
             <span className="inline-flex items-center gap-2 animate-fade-in">
-              <span className="opacity-90">{t.icon}</span>
-              <span>{textLabel}</span>
+              <span className="opacity-90 text-white">{t.icon}</span>
+              <span className="text-white">{textLabel}</span>
             </span>
           </div>
         </div>

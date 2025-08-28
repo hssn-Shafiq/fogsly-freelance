@@ -34,19 +34,22 @@ export const testimonials = [
     quote: "FOGSLY helped me triple my freelance income in just 6 months! The platform is intuitive and the community is amazing.", 
     author: "Sarah K.", 
     role: "Freelancer",
-    stats: "Earns $8,500/mo"
+    stats: "Earns $8,500/mo",
+    clientImage: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
   },
   { 
     quote: "Found the perfect developer for our project in under 48 hours. The vetting process saved us so much time.", 
     author: "Michael T.", 
     role: "Startup Founder",
-    stats: "Hired 12 freelancers"
+    stats: "Hired 12 freelancers",
+    clientImage: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=1200&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8YnVzaW5lc3MlMjBtZW58ZW58MHx8MHx8fDA%3D"
   },
   { 
     quote: "The hybrid model gives me both long-term projects and quick gigs. Plus, FOG Coins are a game-changer!", 
     author: "Jamal R.", 
     role: "Digital Marketer",
-    stats: "500+ tasks completed"
+    stats: "500+ tasks completed",
+    clientImage: "https://images.unsplash.com/photo-1537511446984-935f663eb1f4?w=1200&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8aGFwcHklMjBtZW58ZW58MHx8MHx8fDA%3D"
   },
 ];
 

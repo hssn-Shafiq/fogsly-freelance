@@ -8,8 +8,8 @@ const Hero = ({ navigate }: { navigate: (route: Route) => void }) => {
   return (
     <section className="relative overflow-hidden pt-4">
       <div className="absolute inset-0 bg-gradient-to-r from-[--color-primary]/10 to-[--color-accent]/10 -skew-y-3 transform origin-top-left"></div>
-      <div className="container mx-auto px-4 sm:px-6 md:px-8 pt-0 md:pt-0 pb-14 relative z-10 max-w-[95%] sm:max-w-[90%]">
-        <div className="max-w-7xl bg-[--color-bg-hero] rounded-3xl shadow-2xl mt-0 mx-auto py-8 sm:py-10 text-center">
+      <div className="container mx-auto px-4 sm:px-6 md:px-8 pt-0 md:pt-0 pb-4 relative z-10 max-w-[100%] sm:max-w-[100%]">
+        <div className="max-w-7xl bg-[--color-bg-hero] rounded-3xl shadow-2xl mt-0 mx-auto py-8 sm:py-10 text-center md:px-8 px-5">
           
           {/* Main Heading */}
           <motion.h1

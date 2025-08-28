@@ -113,7 +113,8 @@ const OverviewTab = React.memo(({ userProfile, currentUser }: OverviewTabProps) 
             <div className="flex items-center mt-4 justify-center w-12 h-12 bg-purple-100 rounded-full mx-auto mb-3">
               <Users className="w-6 h-6 text-purple-600" />
             </div>
-            <p className="text-xl font-bold text-[--color-text-primary]">{formatFog(referralEarnings)}</p>
+            {/* <p className="text-xl font-bold text-[--color-text-primary]">{formatFog(referralEarnings) || 0}</p> */}
+            <p className="text-xl font-bold text-[--color-text-primary]">0 FOG</p>
             <p className="text-sm text-[--color-text-secondary]">From Referrals</p>
             <p className="text-xs text-purple-600 mt-1">Share & earn</p>
             <p className="text-xs text-[--color-text-secondary]">≈ {formatUsd(referralEarnings * currentRate)}</p>

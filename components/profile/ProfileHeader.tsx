@@ -204,20 +204,20 @@ const ProfileHeader = React.memo(({
           <div className="">
             {userProfile.rank ? (
               userProfile.rank <= 3 ? (
-                <FogslyRankBanner rank={userProfile.rank} tier="legend" label="Legend" compact />
+                <FogslyRankBanner rank={userProfile.rank} tier="legend" label="Fogsly Legend" compact />
               ) : (userProfile.rank > 3 && userProfile.rank <= 7) ? (
-                <FogslyRankBanner rank={userProfile.rank} tier="master" label="Master" compact />
+                <FogslyRankBanner rank={userProfile.rank} tier="master" label="Fogsly Master" compact />
               ) : (userProfile.rank > 7 && userProfile.rank <= 56) ? (
-                <FogslyRankBanner rank={userProfile.rank} tier="vanguard" label="Vanguard" compact />
+                <FogslyRankBanner rank={userProfile.rank} tier="vanguard" label="Fogsly Vanguard" compact />
               ) : (userProfile.rank > 56 && userProfile.rank <= 245) ? (
-                <FogslyRankBanner rank={userProfile.rank} tier="earlybird" label="EarlyBird" compact />
+                <FogslyRankBanner rank={userProfile.rank} tier="earlybird" label="Fogsly EarlyBird" compact />
               ) : (userProfile.rank > 245 && userProfile.rank <= 678) ? (
-                <FogslyRankBanner rank={userProfile.rank} tier="champion" label="Champion" compact />
+                <FogslyRankBanner rank={userProfile.rank} tier="champion" label="Fogsly Champion" compact />
               ) : (
-                <FogslyRankBanner rank={userProfile.rank} tier="rookie" label="Rookie" compact />
+                <FogslyRankBanner rank={userProfile.rank} tier="rookie" label="Fogsly Rookie" compact />
               )
             ) : (
-              <FogslyRankBanner rank={3} tier="rookie" label="Rookie" compact />
+              <FogslyRankBanner rank={5} tier="rookie" label="Fogsly Rookie" compact />
             )}
             <div className="pt-4 buttons-follow flex items-center gap-2 mt-4 lg:mt-0">
               <Button variant="outline">Send Message</Button>

@@ -5,8 +5,45 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { testimonials } from '../constants';
 import { Card, CardContent } from './ui/Card';
 
+
+const TestimonialImage = ({ testimonial }: { testimonial: typeof testimonials[0] }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
+  const initials = testimonial.author.split(' ').map(n => n[0]).join('');
+
+  return (
+    <div className="w-32 h-32 rounded-full mx-auto mb-6 bg-[--color-bg-tertiary] border-4 border-white dark:border-[--color-bg-secondary] shadow-lg flex items-center justify-center overflow-hidden relative">
+      {/* Show initials as fallback/loading state */}
+      <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${imageLoaded && !imageError ? 'opacity-0' : 'opacity-100'
+        }`}>
+        <span className={`text-5xl font-bold text-[--color-text-secondary] ${!imageLoaded && testimonial.clientImage ? 'animate-pulse' : ''
+          }`}>
+          {initials}
+        </span>
+      </div>
+
+      {/* Show image when available and loaded */}
+      {testimonial.clientImage && (
+        <img
+          src={testimonial.clientImage}
+          alt={testimonial.author}
+          className={`absolute inset-0 w-full h-full object-cover object-top transition-opacity duration-300 ${imageLoaded && !imageError ? 'opacity-100' : 'opacity-0'
+            }`}
+          onLoad={() => setImageLoaded(true)}
+          onError={() => {
+            setImageError(true);
+            setImageLoaded(false);
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
 const Testimonials = () => {
   const [activeTestimonial, setActiveTestimonial] = useState(0);
+
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -35,7 +72,7 @@ const Testimonials = () => {
             Hear from our community of freelancers and clients
           </p>
         </motion.div>
-        
+
         <div className="max-w-4xl mx-auto relative">
           <div className="overflow-hidden relative h-80">
             <AnimatePresence mode="wait">
@@ -53,7 +90,12 @@ const Testimonials = () => {
                   <CardContent className="p-0 h-full">
                     <div className="flex flex-col md:flex-row items-center h-full">
                       <div className="md:w-1/3 mb-6 md:mb-0 flex justify-center">
-                        <div className="bg-gray-200/50 border-2 border-dashed rounded-full w-32 h-32" />
+                        {/* <div className="bg-gray-200/50 border-2 border-dashed rounded-full w-32 h-32" /> */}
+                        {testimonials[activeTestimonial].clientImage ? (
+                          <TestimonialImage testimonial={testimonials[activeTestimonial]} />
+                        ) : (
+                          <div className="bg-gray-200/50 border-2 border-dashed rounded-full w-32 h-32" />
+                        )}
                       </div>
                       <div className="md:w-2/3 md:pl-8 text-center md:text-left">
                         <p className="text-lg italic mb-6 text-[--color-text-primary]">
@@ -71,7 +113,7 @@ const Testimonials = () => {
               </motion.div>
             </AnimatePresence>
           </div>
-          
+
           <div className="flex justify-center mt-6 space-x-2">
             {testimonials.map((_, index) => (
               <button
@@ -82,7 +124,7 @@ const Testimonials = () => {
               />
             ))}
           </div>
-          
+
           <button
             onClick={prevTestimonial}
             className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 md:-translate-x-12 p-2 rounded-full bg-[--color-bg-primary] shadow-md hover:bg-[--color-bg-tertiary] transition-colors"
