@@ -56,7 +56,7 @@ const Testimonials = () => {
   const prevTestimonial = () => setActiveTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length);
 
   return (
-    <section className="py-10 bg-[--color-bg-secondary]">
+    <section className="py-6 bg-[--color-bg-secondary]">
       <div className="container mx-auto px-4">
         <motion.div
           {...{

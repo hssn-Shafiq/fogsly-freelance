@@ -83,7 +83,7 @@ const VisionaryImage = ({ visionary }: { visionary: typeof visionaries[0] }) => 
 
 const Visionaries = () => {
   return (
-    <section className="py-10 bg-[--color-bg-secondary]">
+    <section className="py-6 bg-[--color-bg-secondary]">
       <div className="container mx-auto px-4">
         <motion.div
           {...{

@@ -5,7 +5,7 @@ import { Card, CardContent } from './ui/Card';
 
 const Categories = () => {
   return (
-    <section className="py-12 md:py-24">
+    <section className="pt-06 md:pt-12 md:pb-3 ">
       <div className="container mx-auto px-4">
         <motion.div
           {...{

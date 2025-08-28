@@ -7,7 +7,7 @@ import { Card, CardContent } from './ui/Card';
 
 const TopTalent = () => {
   return (
-    <section className="py-12 md:py-24 pb-10">
+    <section className="py-3 md:py-8 pb-3">
       <div className="container mx-auto px-4">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 md:mb-12 text-center md:text-left">

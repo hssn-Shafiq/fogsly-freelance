@@ -12,7 +12,7 @@ const steps = [
 
 const HowItWorks = () => {
   return (
-    <section className="py-14">
+    <section className="py-6">
       <div className="container mx-auto px-4">
         <motion.div
           {...{

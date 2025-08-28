@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
-import { CheckCircle, ChevronDown, Repeat, CreditCard, PartyPopper, ArrowLeft, DollarSign, Banknote, Copy } from 'lucide-react';
+import { CheckCircle, ChevronDown, Repeat, CreditCard, PartyPopper, ArrowLeft, DollarSign, Banknote, Copy, Loader2 } from 'lucide-react';
 import Modal from '../components/ui/Modal';
 import { type Route } from '../types';
 import HodlManager from '../components/HodlManager';
@@ -25,6 +25,8 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
   const { user } = useAuth();
   const [fogUsdRate, setFogUsdRate] = useState(0.10);
   const [usdToPkrRate] = useState(284.67);
+  const [isLoadingPrice, setIsLoadingPrice] = useState(true);
+  const [lastPriceUpdate, setLastPriceUpdate] = useState<Date | null>(null);
   
   // State for purchase flow
   const [purchaseStep, setPurchaseStep] = useState<PurchaseStep>('idle');
@@ -36,28 +38,45 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
   const [paymentRequestId, setPaymentRequestId] = useState<string>('');
 
   const isModalOpen = purchaseStep !== 'idle';
-  const isBuyButtonDisabled = parseFloat(usdValue) <= 0 || isNaN(parseFloat(usdValue));
+  const isBuyButtonDisabled = parseFloat(usdValue) <= 0 || isNaN(parseFloat(usdValue)) || isLoadingPrice;
 
-  // Load FOG coin settings
-  useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        const settings = await getFogCoinSettings();
-        if (settings) {
-          setFogUsdRate(settings.fogToUsdRate);
-          // Update FOG value when rate changes
-          if (usdValue && !isNaN(parseFloat(usdValue))) {
-            setFogValue((parseFloat(usdValue) / settings.fogToUsdRate).toFixed(2));
-          }
+  // Load FOG coin settings with proper loading state
+  const loadFogCoinPrice = async (showSuccessToast = false) => {
+    setIsLoadingPrice(true);
+    try {
+      const settings = await getFogCoinSettings();
+      if (settings) {
+        setFogUsdRate(settings.fogToUsdRate);
+        setLastPriceUpdate(new Date());
+        
+        // Update FOG value when rate changes
+        if (usdValue && !isNaN(parseFloat(usdValue))) {
+          setFogValue((parseFloat(usdValue) / settings.fogToUsdRate).toFixed(2));
         }
-      } catch (error) {
-        console.error('Error loading FOG coin settings:', error);
-        toast.error('Failed to load current rates');
+        
+        if (showSuccessToast) {
+          toast.success('Price updated successfully!');
+        }
       }
-    };
+    } catch (error) {
+      console.error('Error loading FOG coin settings:', error);
+      toast.error('Failed to load current rates');
+    } finally {
+      setIsLoadingPrice(false);
+    }
+  };
+
+  // Load FOG coin settings on component mount and navigation
+  useEffect(() => {
+    loadFogCoinPrice();
     
-    loadSettings();
-  }, []);
+    // Auto-refresh price every 30 seconds
+    const interval = setInterval(() => {
+      loadFogCoinPrice();
+    }, 30000);
+    
+    return () => clearInterval(interval);
+  }, []); // Remove usdValue dependency to prevent infinite loops
 
   // Load bank accounts when currency is selected
   useEffect(() => {
@@ -191,21 +210,15 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
   return (
     <>
       <div className="pt-0 bg-[--color-bg-primary]">
-        <section className="py-16 pt-4 md:py-24">
+        <section className="py-6 pt-4 md:py-10">
           <div className="container mx-auto px-4">
-             <div className="mb-8">
-                <Button variant="ghost" onClick={() => navigate('home')}>
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Home
-                </Button>
-            </div>
             <motion.div
               {...{
                 initial: { opacity: 0, y: 20 },
                 animate: { opacity: 1, y: 0 },
                 transition: { duration: 0.5 },
               }}
-              className="max-w-3xl mx-auto text-center mb-12"
+              className="max-w-4xl mx-auto text-center mb-12"
             >
               <h1 className="text-4xl md:text-6xl font-bold mb-4">Your Gateway to FOG Coins</h1>
               <p className="text-lg md:text-xl text-[--color-text-secondary]">
@@ -213,7 +226,7 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
               </p>
             </motion.div>
 
-            <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+            <div className="grid lg:grid-cols-2 gap-4 lg:gap-5 items-start">
               <motion.div
                 {...{
                   initial: { opacity: 0, x: -20 },
@@ -223,13 +236,28 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
               >
                 <Card className="shadow-xl">
                   <CardHeader>
-                    <CardTitle className="text-2xl">Acquire FOG Coins</CardTitle>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-2xl">Acquire FOG Coins</CardTitle>
+                      {lastPriceUpdate && (
+                        <div className="flex items-center gap-2 text-xs text-[--color-text-secondary]">
+                          <div className={`w-2 h-2 rounded-full ${isLoadingPrice ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>
+                          <span>
+                            {isLoadingPrice ? 'Updating...' : `Updated ${lastPriceUpdate.toLocaleTimeString()}`}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-6">
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                           {presetAmounts.map(amount => (
-                              <Button key={amount} variant="outline" onClick={() => handleSetPreset(amount)}>
+                              <Button 
+                                key={amount} 
+                                variant="outline" 
+                                onClick={() => handleSetPreset(amount)}
+                                disabled={isLoadingPrice}
+                              >
                                   ${amount}
                               </Button>
                           ))}
@@ -241,7 +269,8 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
                             type="number"
                             value={usdValue}
                             onChange={handleUsdChange}
-                            className="w-full h-12 pl-4 pr-20 rounded-md border border-[--color-border] bg-[--color-bg-secondary] text-lg font-semibold focus:ring-2 focus:ring-[--color-primary] outline-none transition-shadow" 
+                            disabled={isLoadingPrice}
+                            className="w-full h-12 pl-4 pr-20 rounded-md border border-[--color-border] bg-[--color-bg-secondary] text-lg font-semibold focus:ring-2 focus:ring-[--color-primary] outline-none transition-shadow disabled:opacity-50 disabled:cursor-not-allowed" 
                             placeholder="0.00"
                           />
                           <span className="absolute inset-y-0 right-4 flex items-center text-[--color-text-secondary] font-medium">USD</span>
@@ -259,16 +288,48 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
                             type="number"
                             value={fogValue}
                             onChange={handleFogChange}
-                            className="w-full h-12 pl-4 pr-20 rounded-md border border-[--color-border] bg-[--color-bg-secondary] text-lg font-semibold focus:ring-2 focus:ring-[--color-primary] outline-none transition-shadow" 
+                            disabled={isLoadingPrice}
+                            className="w-full h-12 pl-4 pr-20 rounded-md border border-[--color-border] bg-[--color-bg-secondary] text-lg font-semibold focus:ring-2 focus:ring-[--color-primary] outline-none transition-shadow disabled:opacity-50 disabled:cursor-not-allowed" 
                             placeholder="0.00"
                           />
                           <span className="absolute inset-y-0 right-4 flex items-center text-[--color-text-secondary] font-medium">FOG</span>
                         </div>
-                        <p className="text-xs text-right mt-1 text-[--color-text-secondary]">Rate: 1 FOG = ${fogUsdRate.toFixed(3)}</p>
+                        <div className="flex items-center justify-between mt-1">
+                          <div className="flex items-center gap-2">
+                            {isLoadingPrice ? (
+                              <div className="flex items-center gap-2 text-xs text-[--color-text-secondary]">
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                                <span>Updating rate...</span>
+                              </div>
+                            ) : (
+                              <p className="text-xs text-[--color-text-secondary]">
+                                Rate: 1 FOG = ${fogUsdRate.toFixed(3)}
+                              </p>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => loadFogCoinPrice(true)}
+                            disabled={isLoadingPrice}
+                            className="flex items-center gap-1 text-xs text-[--color-primary] hover:text-[--color-primary]/80 disabled:opacity-50 transition-colors"
+                          >
+                            <Repeat className={`w-3 h-3 ${isLoadingPrice ? 'animate-spin' : ''}`} />
+                            Refresh
+                          </button>
+                        </div>
                       </div>
 
                       <Button size="lg" className="w-full text-lg font-bold" onClick={handleBuyClick} disabled={isBuyButtonDisabled}>
-                        <CreditCard className="w-5 h-5 mr-2" /> Deposit FOG Coins
+                        {isLoadingPrice ? (
+                          <>
+                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                            Loading Price...
+                          </>
+                        ) : (
+                          <>
+                            <CreditCard className="w-5 h-5 mr-2" />
+                            Deposit FOG Coins
+                          </>
+                        )}
                       </Button>
                       <p className="text-xs text-center text-[--color-text-secondary]">
                         Secure manual verification process.
@@ -279,7 +340,7 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
               </motion.div>
 
               <motion.div
-                className="space-y-8"
+                className="space-y-5"
                 {...{
                   initial: { opacity: 0, x: 20 },
                   animate: { opacity: 1, x: 0 },
