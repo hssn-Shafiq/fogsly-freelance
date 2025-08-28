@@ -5,7 +5,7 @@ import IconMarketplace from './components/icons/IconMarketplace';
 import IconFogCoin from './components/icons/IconFogCoin';
 import IconGlobe from './components/icons/IconGlobe';
 import IconSupport from './components/icons/IconSupport';
-import { AtomIcon } from './components/icons/AnimatedIcons/iconAtom';
+import { AtomIcon } from './components/icons/AnimatedIcons/IconAtom';
 import { BadgeCheck } from './components/icons/AnimatedIcons/IconBadge';
 
 export const categories = [
