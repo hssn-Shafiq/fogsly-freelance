@@ -307,7 +307,7 @@ export const Header: React.FC<HeaderProps> = ({
                         className="w-full flex items-center justify-center gap-2"
                         onClick={onLogout}
                       >
-                        <LogOut className="w-4 h-4" /> Log Out
+                        <LogOut className="w-4 h-4" /> Sign Out
                       </Button>
                     </>
                   ) : (
