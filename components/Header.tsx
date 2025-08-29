@@ -155,6 +155,27 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
+      <style jsx>{`
+        @supports (height: 100dvh) {
+          .mobile-sidebar {
+            height: 100dvh !important;
+            max-height: 100dvh !important;
+          }
+        }
+        @supports not (height: 100dvh) {
+          .mobile-sidebar {
+            height: 100vh !important;
+            max-height: 100vh !important;
+          }
+        }
+        /* Fix for iOS Safari */
+        @media screen and (max-width: 768px) {
+          .mobile-sidebar {
+            height: 100vh !important;
+            height: calc(var(--vh, 1vh) * 100) !important;
+          }
+        }
+      `}</style>
       <header
         className={[
           'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
@@ -249,13 +270,13 @@ export const Header: React.FC<HeaderProps> = ({
               />
               <motion.div
                 key="panel"
-                className="fixed top-0 right-0 bottom-0 z-50 w-[80%] max-w-sm h-screen bg-[--color-bg-primary] border-l border-[--color-border] flex flex-col"
+                className="mobile-sidebar fixed top-0 right-0 bottom-0 z-50 w-[80%] max-w-sm bg-[--color-bg-primary] border-l border-[--color-border] flex flex-col overflow-hidden"
                 initial={{ x: '100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
                 transition={{ type: 'spring', stiffness: 260, damping: 28 }}
               >
-                <div className="h-16 flex items-center justify-between px-5 border-b border-[--color-border]">
+                <div className="h-16 flex items-center justify-between px-5 border-b border-[--color-border] flex-shrink-0">
                   <button
                     onClick={() => {
                       navigate('home');
@@ -274,7 +295,7 @@ export const Header: React.FC<HeaderProps> = ({
                   </motion.button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto px-5 py-6 space-y-6">
+                <div className="flex-1 overflow-y-auto px-5 py-6 space-y-6 min-h-0">
                   <ul className="space-y-2">
                     {navLinks.map(link => (
                       <li key={link.label}>
@@ -291,8 +312,10 @@ export const Header: React.FC<HeaderProps> = ({
                   </ul>
                 </div>
 
-                {/* Auth Buttons inside Sidebar */}
-                <div className="p-5 border-t border-[--color-border] space-y-3">
+                {/* Auth Buttons inside Sidebar - Always visible at bottom */}
+                <div className="flex-shrink-0 p-5 border-t border-[--color-border] space-y-3 bg-[--color-bg-primary]"
+                     style={{ paddingBottom: 'max(20px, env(safe-area-inset-bottom))' }} // Account for safe area
+                >
                   {isLoggedIn ? (
                     <>
                       <Button
