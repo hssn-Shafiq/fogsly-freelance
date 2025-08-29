@@ -296,19 +296,20 @@ export const Header: React.FC<HeaderProps> = ({
                   {isLoggedIn ? (
                     <>
                       <Button
-                        variant="outline"
-                        className="w-full flex items-center justify-center gap-2"
-                        onClick={handleProfileClick}
-                      >
-                        <User className="w-4 h-4" /> Profile
-                      </Button>
-                      <Button
                         variant="ghost"
                         className="w-full flex items-center justify-center gap-2"
                         onClick={onLogout}
                       >
                         <LogOut className="w-4 h-4" /> Sign Out
                       </Button>
+                      <Button
+                        variant="outline"
+                        className="w-full flex items-center justify-center gap-2"
+                        onClick={handleProfileClick}
+                      >
+                        <User className="w-4 h-4" /> Profile
+                      </Button>
+                    
                     </>
                   ) : (
                     <>
