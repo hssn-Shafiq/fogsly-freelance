@@ -187,7 +187,7 @@ export default function AdminDashboard({ currentAdmin }: AdminDashboardProps) {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white shadow-lg"
+        className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white shadow-md"
       >
         <div className="flex items-center justify-between">
           <div>
@@ -227,7 +227,7 @@ export default function AdminDashboard({ currentAdmin }: AdminDashboardProps) {
             whileHover={{ scale: 1.02, y: -5 }}
             className="relative overflow-hidden"
           >
-            <Card className="h-full border-0 shadow-lg bg-white dark:bg-slate-800">
+            <Card className="h-full border-0 shadow-sm bg-white dark:bg-slate-800">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                 <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">
                   {stat.title}
@@ -277,7 +277,7 @@ export default function AdminDashboard({ currentAdmin }: AdminDashboardProps) {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="shadow-lg border-0">
+          <Card className="shadow-sm border-0">
             <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700">
               <CardTitle className="flex items-center gap-2">
                 <Activity className="w-5 h-5 text-blue-600" />
@@ -332,7 +332,7 @@ export default function AdminDashboard({ currentAdmin }: AdminDashboardProps) {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <Card className="shadow-lg border-0">
+          <Card className="shadow-sm border-0">
             <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700">
               <CardTitle className="flex items-center gap-2">
                 <Zap className="w-5 h-5 text-purple-600" />
@@ -350,7 +350,7 @@ export default function AdminDashboard({ currentAdmin }: AdminDashboardProps) {
                     transition={{ delay: index * 0.1 }}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className={`p-4 rounded-xl text-left transition-all ${action.color} hover:shadow-lg`}
+                    className={`p-4 rounded-xl text-left transition-all ${action.color} hover:shadow-sm`}
                   >
                     <div className="flex items-center gap-3">
                       <action.icon className="w-6 h-6 text-white" />
@@ -373,7 +373,7 @@ export default function AdminDashboard({ currentAdmin }: AdminDashboardProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
       >
-        <Card className="shadow-lg border-0">
+        <Card className="shadow-sm border-0">
           <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700">
             <CardTitle className="flex items-center gap-2">
               <User className="w-5 h-5 text-indigo-600" />

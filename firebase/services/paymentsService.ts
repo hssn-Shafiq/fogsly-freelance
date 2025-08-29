@@ -153,6 +153,25 @@ export const getPaymentRequest = async (paymentRequestId: string): Promise<Payme
 };
 
 /**
+ * Get user's pending payment requests count
+ */
+export const getUserPendingRequestsCount = async (userId: string): Promise<number> => {
+  try {
+    const requestsQuery = query(
+      collection(db, PAYMENT_REQUESTS_COLLECTION),
+      where('userId', '==', userId),
+      where('status', '==', 'pending')
+    );
+    
+    const snapshot = await getDocs(requestsQuery);
+    return snapshot.size;
+  } catch (error) {
+    console.error('Error fetching user pending requests count:', error);
+    return 0;
+  }
+};
+
+/**
  * Get user's payment requests
  */
 export const getUserPaymentRequests = async (userId: string): Promise<PaymentRequest[]> => {

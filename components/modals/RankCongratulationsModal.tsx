@@ -37,37 +37,37 @@ const RankCongratulationsModal = ({
   const getMessages = () => {
     const baseMessages = {
       legend: {
-        title: "🏅 LEGEND ACHIEVED! 🏅",
+        title: "🏅FOGSLY LEGEND ACHIEVED! 🏅",
         subtitle: `Welcome to the elite, ${userName}!`,
         achievement: "Top 5 Worldwide",
         description: "You've reached the pinnacle of FOGSLY! As a Legend, you're among the top 5 users globally. Your expertise and dedication have earned you the highest honors."
       },
       master: {
-        title: "👑 MASTER STATUS! 👑",
+        title: "👑FOGSLY MASTER STATUS! 👑",
         subtitle: `Outstanding achievement, ${userName}!`,
         achievement: "Top 20 Worldwide",
         description: "Exceptional! You've mastered the FOGSLY platform and earned your place among the top 20 users. Your skills are truly remarkable."
       },
       vanguard: {
-        title: "⚡ VANGUARD ELITE! ⚡",
+        title: "⚡FOGSLY VANGUARD ELITE! ⚡",
         subtitle: `Impressive progress, ${userName}!`,
         achievement: "Top 100 Worldwide",
         description: "You're leading the way! As a Vanguard member, you're in the top 100 users, setting the standard for excellence on FOGSLY."
       },
       earlybird: {
-        title: "🐦 EARLY BIRD! 🐦",
+        title: "🐦FOGSLY EARLY BIRD! 🐦",
         subtitle: `Great start, ${userName}!`,
         achievement: "Top 300 Worldwide",
         description: "You're off to a fantastic start! Your early adoption and engagement have earned you a spot in the top 300 users."
       },
       champion: {
-        title: "🏆 CHAMPION RANK! 🏆",
+        title: "🏆FOGSLY CHAMPION RANK! 🏆",
         subtitle: `Well done, ${userName}!`,
         achievement: "Top 1000 Worldwide",
         description: "Congratulations on becoming a Champion! You're among the top 1000 users, showcasing your commitment to the FOGSLY community."
       },
       rookie: {
-        title: "🌱 WELCOME ROOKIE! 🌱",
+        title: "🌱WELCOME ROOKIE! 🌱",
         subtitle: `Great to have you, ${userName}!`,
         achievement: "New Member",
         description: "Welcome to FOGSLY! You're starting your journey with unlimited potential. Every expert was once a beginner!"
@@ -229,7 +229,7 @@ const RankCongratulationsModal = ({
             onClick={handleContentClick}
           >
             {/* Main content with scroll */}
-            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl border border-white/10 shadow-2xl">
+            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl border border-white/10 shadow-md">
               {/* Close button */}
               <motion.button
                 onClick={onClose}
@@ -250,7 +250,7 @@ const RankCongratulationsModal = ({
                   {/* Header */}
                   <motion.div variants={itemVariants} className="space-y-4">
                     <motion.h1 
-                      className="text-3xl md:text-5xl font-black text-white mb-2"
+                      className="text-4xl md:text-5xl font-black text-white mb-2"
                       animate={{ 
                         textShadow: [
                           "0 0 20px rgba(255,255,255,0.5)",
@@ -307,7 +307,7 @@ const RankCongratulationsModal = ({
                   >
                     <Button
                       onClick={onClose}
-                      className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg transform transition-all duration-200 hover:scale-105"
+                      className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-sm transform transition-all duration-200 hover:scale-105"
                     >
                       <Sparkles className="w-5 h-5 mr-2" />
                       Start Your Journey

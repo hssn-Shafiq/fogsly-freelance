@@ -228,6 +228,17 @@ const ProfileHeader = React.memo(({
             </div>
           </div>
         </div>
+
+        {/* <div className="demo-car">
+          <div className="container flex p-5">
+            <FogslyRankBanner rank={4} tier="legend" label="Fogsly Legend" compact />
+            <FogslyRankBanner rank={4} tier="master" label="Fogsly Master" compact />
+            <FogslyRankBanner rank={4} tier="vanguard" label="Fogsly Vanguard" compact />
+            <FogslyRankBanner rank={4} tier="earlybird" label="Fogsly EarlyBird" compact />
+            <FogslyRankBanner rank={4} tier="champion" label="Fogsly Champion" compact />
+            <FogslyRankBanner rank={4} tier="rookie" label="Fogsly Rookie" compact />
+          </div>
+        </div> */}
       </Card>
     </>
   );

@@ -5,7 +5,7 @@ import { Card, CardContent } from './ui/Card';
 
 const WhyChooseUs = () => {
   return (
-    <section className="py-14 bg-[--color-bg-tertiary]">
+    <section className="py-6 bg-[--color-bg-tertiary]">
       <div className="container mx-auto px-4">
         <motion.div
           {...{

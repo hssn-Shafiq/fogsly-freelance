@@ -26,7 +26,7 @@ const usages = [
 
 const CoinUsage = () => {
   return (
-    <section className="py-14 bg-[--color-bg-primary]">
+    <section className="py-6 bg-[--color-bg-primary]">
       <div className="container mx-auto px-4">
         <motion.div
           {...{

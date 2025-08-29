@@ -4,7 +4,7 @@ import IconTrustShield from './icons/IconTrustShield';
 
 const Trust = () => {
   return (
-    <section className="py-10">
+    <section className="py-6">
       <div className="container mx-auto px-4">
         <motion.div 
           {...{
