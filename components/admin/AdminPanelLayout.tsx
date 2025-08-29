@@ -210,7 +210,7 @@ export default function AdminPanelLayout({
       </div>
 
       {/* Admin Info */}
-      <AnimatePresence>
+      {/* <AnimatePresence>
         {!sidebarCollapsed && (
           <motion.div 
             className="p-4 border-b border-slate-700/50 bg-slate-800/30"
@@ -234,7 +234,7 @@ export default function AdminPanelLayout({
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence> */}
 
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto custom-scrollbar">
@@ -258,7 +258,7 @@ export default function AdminPanelLayout({
               key={item.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
+              transition={{ delay: index * 0.01 }}
             >
               <motion.button
                 onClick={() => handleRouteChange(item.id)}

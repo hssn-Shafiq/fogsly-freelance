@@ -143,7 +143,8 @@ const ProfileBalanceCards = React.memo(({ currentUser, navigate }: ProfileBalanc
         icon={Play} 
         title="Ads Watched" 
         amount={adsWatched.toString()} 
-        description={`${todaysCount} watched today | ${formatFog(adsEarningsFog)} earned`} 
+        // description={`${todaysCount} watched today | ${formatFog(adsEarningsFog)} earned`} 
+        description={`${todaysCount} watched today `} 
         cta="Watch More"
         onClick={handleWatchAds}
       />

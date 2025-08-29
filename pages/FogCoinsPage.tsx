@@ -2,15 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
-import { CheckCircle, ChevronDown, Repeat, CreditCard, PartyPopper, ArrowLeft, DollarSign, Banknote, Copy, Loader2 } from 'lucide-react';
+import { CheckCircle, ChevronDown, Repeat, CreditCard, PartyPopper, ArrowLeft, DollarSign, Banknote, Copy, Loader2, AlertTriangle, ExternalLink } from 'lucide-react';
 import Modal from '../components/ui/Modal';
 import { type Route } from '../types';
 import HodlManager from '../components/HodlManager';
 import { useAuth } from '../firebase/hooks/useAuth';
 import { getFogCoinSettings } from '../firebase/services/fogCoinSettingsService';
-import { 
-  getBankAccountsByCurrency, 
-  createPaymentRequest
+import {
+  getBankAccountsByCurrency,
+  createPaymentRequest,
+  getUserPendingRequestsCount
 } from '../firebase/services/paymentsService';
 import type { Currency, BankAccount } from '../firebase/types/payments';
 import { toast } from 'react-hot-toast';
@@ -27,7 +28,11 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
   const [usdToPkrRate] = useState(284.67);
   const [isLoadingPrice, setIsLoadingPrice] = useState(true);
   const [lastPriceUpdate, setLastPriceUpdate] = useState<Date | null>(null);
-  
+
+  // Pending requests state
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
+  const [isLoadingPendingRequests, setIsLoadingPendingRequests] = useState(false);
+
   // State for purchase flow
   const [purchaseStep, setPurchaseStep] = useState<PurchaseStep>('idle');
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>('USD');
@@ -38,7 +43,8 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
   const [paymentRequestId, setPaymentRequestId] = useState<string>('');
 
   const isModalOpen = purchaseStep !== 'idle';
-  const isBuyButtonDisabled = parseFloat(usdValue) <= 0 || isNaN(parseFloat(usdValue)) || isLoadingPrice;
+  const hasTooManyPendingRequests = pendingRequestsCount >= 2;
+  const isBuyButtonDisabled = parseFloat(usdValue) <= 0 || isNaN(parseFloat(usdValue)) || isLoadingPrice || hasTooManyPendingRequests;
 
   // Load FOG coin settings with proper loading state
   const loadFogCoinPrice = async (showSuccessToast = false) => {
@@ -48,12 +54,12 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
       if (settings) {
         setFogUsdRate(settings.fogToUsdRate);
         setLastPriceUpdate(new Date());
-        
+
         // Update FOG value when rate changes
         if (usdValue && !isNaN(parseFloat(usdValue))) {
           setFogValue((parseFloat(usdValue) / settings.fogToUsdRate).toFixed(2));
         }
-        
+
         if (showSuccessToast) {
           toast.success('Price updated successfully!');
         }
@@ -66,17 +72,46 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
     }
   };
 
+  // Load pending requests count
+  const loadPendingRequests = async () => {
+    if (!user?.uid) return;
+
+    setIsLoadingPendingRequests(true);
+    try {
+      const count = await getUserPendingRequestsCount(user.uid);
+      setPendingRequestsCount(count);
+    } catch (error) {
+      console.error('Error loading pending requests:', error);
+    } finally {
+      setIsLoadingPendingRequests(false);
+    }
+  };
+
   // Load FOG coin settings on component mount and navigation
   useEffect(() => {
     loadFogCoinPrice();
-    
+
     // Auto-refresh price every 30 seconds
-    const interval = setInterval(() => {
+    const priceInterval = setInterval(() => {
       loadFogCoinPrice();
     }, 30000);
-    
-    return () => clearInterval(interval);
-  }, []); // Remove usdValue dependency to prevent infinite loops
+
+    return () => clearInterval(priceInterval);
+  }, []);
+
+  // Load pending requests when user changes or component mounts
+  useEffect(() => {
+    if (user?.uid) {
+      loadPendingRequests();
+
+      // Auto-refresh pending requests every 15 seconds
+      const requestsInterval = setInterval(() => {
+        loadPendingRequests();
+      }, 15000);
+
+      return () => clearInterval(requestsInterval);
+    }
+  }, [user?.uid]);
 
   // Load bank accounts when currency is selected
   useEffect(() => {
@@ -90,7 +125,7 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
           toast.error('Failed to load bank accounts');
         }
       };
-      
+
       loadBankAccounts();
     }
   }, [selectedCurrency]);
@@ -135,6 +170,12 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
       navigate('auth');
       return;
     }
+
+    if (hasTooManyPendingRequests) {
+      toast.error(`You have ${pendingRequestsCount} pending requests. Please verify them first in Customer Service.`);
+      return;
+    }
+
     if (!isBuyButtonDisabled) {
       setPurchaseStep('currency');
     }
@@ -151,10 +192,10 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
 
   const handleBankSelect = async (bank: BankAccount) => {
     if (!user) return;
-    
+
     try {
       setSelectedBankAccount(bank);
-      
+
       // Create payment request
       const requestId = await createPaymentRequest(
         user.uid,
@@ -166,10 +207,13 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
         fogUsdRate,
         bank.id
       );
-      
+
       setPaymentRequestId(requestId);
       setPurchaseStep('submitted');
-      
+
+      // Refresh pending requests count after creating new request
+      loadPendingRequests();
+
       toast.success('Payment request created! Please complete verification in Customer Service.');
     } catch (error) {
       console.error('Error creating payment request:', error);
@@ -195,7 +239,7 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
     "Exclusive feature access",
     "Earn loyalty rewards through HODLing"
   ];
-  
+
   const faqs = [
     { q: "What is FOG Coin?", a: "FOG Coin is our native digital currency, designed to make transactions on the FOGSLY platform faster, cheaper, and more secure." },
     { q: "How do I deposit money?", a: "Choose your currency (USD/PKR), select amount, pick a bank account, make payment, and upload verification. Admin will approve within 24 hours." },
@@ -221,10 +265,41 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
               className="max-w-4xl mx-auto text-center mb-12"
             >
               <h1 className="text-4xl md:text-6xl font-bold mb-4">Your Gateway to FOG Coins</h1>
-              <p className="text-lg md:text-xl text-[--color-text-secondary]">
+              <p className="text-lg md:text-xl text-[--color-text-secondary] mb-6">
                 Start using our native currency for lower fees, instant transfers, and exclusive rewards.
               </p>
+
+              {/* Warning message for pending requests */}
             </motion.div>
+
+            <div className="container">
+              {user && hasTooManyPendingRequests && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="max-w-5xl mx-auto mb-6"
+                >
+                  <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                    <div className="flex items-center gap-3">
+                      <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                      <div className="text-left flex gap-2 items-center">
+                        <p className="text-amber-800 dark:text-amber-200 font-medium">
+                          You have {pendingRequestsCount} pending request{pendingRequestsCount > 1 ? 's' : ''} for verification.
+                          Please go and verify them before submitting a new request.
+                        </p>
+                        <button
+                          onClick={() => navigate('customer-service')}
+                          className="inline-flex items-center gap-2 mt-2 text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100 font-medium transition-colors"
+                        >
+                          <span>Verify Now</span>
+                          <ExternalLink className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </div>
 
             <div className="grid lg:grid-cols-2 gap-4 lg:gap-5 items-start">
               <motion.div
@@ -238,39 +313,58 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-2xl">Acquire FOG Coins</CardTitle>
-                      {lastPriceUpdate && (
-                        <div className="flex items-center gap-2 text-xs text-[--color-text-secondary]">
-                          <div className={`w-2 h-2 rounded-full ${isLoadingPrice ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>
-                          <span>
-                            {isLoadingPrice ? 'Updating...' : `Updated ${lastPriceUpdate.toLocaleTimeString()}`}
-                          </span>
-                        </div>
-                      )}
+                      <div className="flex flex-col items-end gap-1">
+                        {lastPriceUpdate && (
+                          <div className="flex items-center gap-2 text-xs text-[--color-text-secondary]">
+                            <div className={`w-2 h-2 rounded-full ${isLoadingPrice ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>
+                            <span>
+                              {isLoadingPrice ? 'Updating...' : `Updated ${lastPriceUpdate.toLocaleTimeString()}`}
+                            </span>
+                          </div>
+                        )}
+                        {user && (
+                          <div className="flex items-center gap-2 text-xs text-[--color-text-secondary]">
+                            {isLoadingPendingRequests ? (
+                              <>
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                                <span>Checking requests...</span>
+                              </>
+                            ) : (
+                              <>
+                                <div className={`w-2 h-2 rounded-full ${pendingRequestsCount >= 2 ? 'bg-red-500' : pendingRequestsCount > 0 ? 'bg-yellow-500' : 'bg-green-500'}`}></div>
+                                <span>
+                                  {pendingRequestsCount} pending request{pendingRequestsCount !== 1 ? 's' : ''}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-6">
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                          {presetAmounts.map(amount => (
-                              <Button 
-                                key={amount} 
-                                variant="outline" 
-                                onClick={() => handleSetPreset(amount)}
-                                disabled={isLoadingPrice}
-                              >
-                                  ${amount}
-                              </Button>
-                          ))}
+                        {presetAmounts.map(amount => (
+                          <Button
+                            key={amount}
+                            variant="outline"
+                            onClick={() => handleSetPreset(amount)}
+                            disabled={isLoadingPrice || hasTooManyPendingRequests}
+                          >
+                            ${amount}
+                          </Button>
+                        ))}
                       </div>
                       <div>
                         <label className="text-sm font-medium text-[--color-text-secondary]">You pay</label>
                         <div className="relative mt-1">
-                          <input 
+                          <input
                             type="number"
                             value={usdValue}
                             onChange={handleUsdChange}
-                            disabled={isLoadingPrice}
-                            className="w-full h-12 pl-4 pr-20 rounded-md border border-[--color-border] bg-[--color-bg-secondary] text-lg font-semibold focus:ring-2 focus:ring-[--color-primary] outline-none transition-shadow disabled:opacity-50 disabled:cursor-not-allowed" 
+                            disabled={isLoadingPrice || hasTooManyPendingRequests}
+                            className="w-full h-12 pl-4 pr-20 rounded-md border border-[--color-border] bg-[--color-bg-secondary] text-lg font-semibold focus:ring-2 focus:ring-[--color-primary] outline-none transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
                             placeholder="0.00"
                           />
                           <span className="absolute inset-y-0 right-4 flex items-center text-[--color-text-secondary] font-medium">USD</span>
@@ -284,12 +378,12 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
                       <div>
                         <label className="text-sm font-medium text-[--color-text-secondary]">You receive</label>
                         <div className="relative mt-1">
-                          <input 
+                          <input
                             type="number"
                             value={fogValue}
                             onChange={handleFogChange}
-                            disabled={isLoadingPrice}
-                            className="w-full h-12 pl-4 pr-20 rounded-md border border-[--color-border] bg-[--color-bg-secondary] text-lg font-semibold focus:ring-2 focus:ring-[--color-primary] outline-none transition-shadow disabled:opacity-50 disabled:cursor-not-allowed" 
+                            disabled={isLoadingPrice || hasTooManyPendingRequests}
+                            className="w-full h-12 pl-4 pr-20 rounded-md border border-[--color-border] bg-[--color-bg-secondary] text-lg font-semibold focus:ring-2 focus:ring-[--color-primary] outline-none transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
                             placeholder="0.00"
                           />
                           <span className="absolute inset-y-0 right-4 flex items-center text-[--color-text-secondary] font-medium">FOG</span>
@@ -308,11 +402,14 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
                             )}
                           </div>
                           <button
-                            onClick={() => loadFogCoinPrice(true)}
-                            disabled={isLoadingPrice}
+                            onClick={() => {
+                              loadFogCoinPrice(true);
+                              if (user?.uid) loadPendingRequests();
+                            }}
+                            disabled={isLoadingPrice || isLoadingPendingRequests}
                             className="flex items-center gap-1 text-xs text-[--color-primary] hover:text-[--color-primary]/80 disabled:opacity-50 transition-colors"
                           >
-                            <Repeat className={`w-3 h-3 ${isLoadingPrice ? 'animate-spin' : ''}`} />
+                            <Repeat className={`w-3 h-3 ${isLoadingPrice || isLoadingPendingRequests ? 'animate-spin' : ''}`} />
                             Refresh
                           </button>
                         </div>
@@ -323,6 +420,11 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
                           <>
                             <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                             Loading Price...
+                          </>
+                        ) : hasTooManyPendingRequests ? (
+                          <>
+                            <AlertTriangle className="w-5 h-5 mr-2" />
+                            Too Many Pending Requests
                           </>
                         ) : (
                           <>
@@ -370,13 +472,13 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
                   <CardContent className="space-y-4">
                     {faqs.map(faq => (
                       <details key={faq.q} className="group border-b border-[--color-border] pb-3">
-                          <summary className="flex justify-between items-center font-medium cursor-pointer list-none">
-                            <span className="text-[--color-text-primary]">{faq.q}</span>
-                            <ChevronDown className="w-5 h-5 text-[--color-text-secondary] transition-transform duration-300 group-open:rotate-180" />
-                          </summary>
-                          <p className="text-[--color-text-secondary] mt-2 group-open:animate-fadeIn">
-                            {faq.a}
-                          </p>
+                        <summary className="flex justify-between items-center font-medium cursor-pointer list-none">
+                          <span className="text-[--color-text-primary]">{faq.q}</span>
+                          <ChevronDown className="w-5 h-5 text-[--color-text-secondary] transition-transform duration-300 group-open:rotate-180" />
+                        </summary>
+                        <p className="text-[--color-text-secondary] mt-2 group-open:animate-fadeIn">
+                          {faq.a}
+                        </p>
                       </details>
                     ))}
                   </CardContent>
@@ -393,15 +495,15 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
         </section> */}
       </div>
 
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={handleCloseModal} 
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
         preventBackgroundClose={true}
         title={
           purchaseStep === 'currency' ? "Select Currency" :
-          purchaseStep === 'amount' ? "Confirm Amount" :
-          purchaseStep === 'bank' ? "Select Payment Method" :
-          purchaseStep === 'submitted' ? "Request Submitted" : ""
+            purchaseStep === 'amount' ? "Confirm Amount" :
+              purchaseStep === 'bank' ? "Select Payment Method" :
+                purchaseStep === 'submitted' ? "Request Submitted" : ""
         }
       >
         {/* Currency Selection */}
@@ -411,8 +513,8 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
               Choose your preferred currency for payment:
             </p>
             <div className="grid grid-cols-2 gap-4">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="h-16 flex flex-col items-center"
                 onClick={() => handleCurrencySelect('USD')}
               >
@@ -420,8 +522,8 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
                 <span>USD</span>
                 <span className="text-xs text-[--color-text-secondary]">International</span>
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="h-16 flex flex-col items-center"
                 onClick={() => handleCurrencySelect('PKR')}
               >
@@ -476,8 +578,8 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
             </p>
             <div className="space-y-3 max-h-60 overflow-y-auto">
               {bankAccounts.map((bank) => (
-                <Card 
-                  key={bank.id} 
+                <Card
+                  key={bank.id}
                   className="cursor-pointer hover:bg-[--color-bg-secondary] transition-colors"
                   onClick={() => handleBankSelect(bank)}
                 >
@@ -532,9 +634,9 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
                   <span>Account Name:</span>
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{selectedBankAccount.accountHolderName}</span>
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
+                    <Button
+                      size="sm"
+                      variant="ghost"
                       className="h-6 w-6 p-0"
                       onClick={() => copyToClipboard(selectedBankAccount.accountHolderName)}
                     >
@@ -546,9 +648,9 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
                   <span>Account Number:</span>
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{selectedBankAccount.accountNumber}</span>
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
+                    <Button
+                      size="sm"
+                      variant="ghost"
                       className="h-6 w-6 p-0"
                       onClick={() => copyToClipboard(selectedBankAccount.accountNumber)}
                     >
@@ -561,9 +663,9 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
                     <span>IBAN:</span>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{selectedBankAccount.iban}</span>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
+                      <Button
+                        size="sm"
+                        variant="ghost"
                         className="h-6 w-6 p-0"
                         onClick={() => copyToClipboard(selectedBankAccount.iban)}
                       >
@@ -577,9 +679,9 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
                     <span>Address:</span>
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-xs">{selectedBankAccount.address}</span>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
+                      <Button
+                        size="sm"
+                        variant="ghost"
                         className="h-6 w-6 p-0"
                         onClick={() => copyToClipboard(selectedBankAccount.address)}
                       >
@@ -618,11 +720,11 @@ const FogCoinsPage = ({ navigate }: FogCoinsPageProps) => {
               <Button variant="ghost" onClick={handleCloseModal} className="flex-1">
                 Close
               </Button>
-              <Button 
+              <Button
                 onClick={() => {
                   handleCloseModal();
                   navigate('customer-service');
-                }} 
+                }}
                 className="flex-1"
               >
                 Complete Verification

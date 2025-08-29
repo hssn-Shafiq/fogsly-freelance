@@ -5,106 +5,156 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../co
 import { Button } from '../components/ui/Button';
 import { RadioGroup } from '../components/ui/RadioGroup';
 import { Textarea } from '../components/ui/Textarea';
-import { 
-  getAvailableAdsForUser, 
-  getUserAdStats, 
+import {
+  getAvailableAdsForUser,
+  getUserAdStats,
   getUserCompletedAdIds,
-  watchAd 
+  watchAd
 } from '../firebase/services/adService';
 import { getUserProfile } from '../firebase/services/userService';
 import { Ad, UserAdStats } from '../firebase/types/ads';
 import { UserProfile } from '../firebase/types/user';
 import { Route } from '../types';
 import { toast } from 'react-hot-toast';
-import { 
-  Play, 
-  Clock, 
-  DollarSign, 
-  Eye, 
-  TrendingUp, 
-  Award, 
-  Check, 
+import {
+  Play,
+  Clock,
+  DollarSign,
+  Eye,
+  TrendingUp,
+  Award,
+  Check,
   Gift,
   ArrowLeft,
   User,
-  Pause
+  Pause,
+  AlertTriangle,
+  ExternalLink,
+  MapPin,
+  Phone,
+  Globe
 } from 'lucide-react';
 
 interface AdCardProps {
   ad: Ad;
   isCompleted: boolean;
+  isDisabled: boolean;
+  disabledReason?: string;
   onWatch: (ad: Ad) => void;
 }
 
-const AdCard: React.FC<AdCardProps> = ({ ad, isCompleted, onWatch }) => {
+const AdCard: React.FC<AdCardProps> = ({ ad, isCompleted, isDisabled, disabledReason, onWatch }) => {
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  const handleClick = () => {
+    if (isCompleted) return;
+
+    if (isDisabled) {
+      setShowTooltip(true);
+      setTimeout(() => setShowTooltip(false), 3000);
+      return;
+    }
+
+    onWatch(ad);
+  };
   return (
-    <motion.div whileHover={{ y: isCompleted ? 0 : -5 }} transition={{ type: 'spring', stiffness: 300 }}>
-      <Card
-        className={`cursor-pointer overflow-hidden h-full flex flex-col transition-shadow ${
-          isCompleted ? 'opacity-75' : 'hover:shadow-lg'
-        }`}
-        onClick={() => !isCompleted && onWatch(ad)}
-      >
-        <div className="relative bg-[--color-bg-tertiary] aspect-video flex items-center justify-center">
-          {isCompleted ? (
-            <div className="absolute inset-0 bg-green-500/90 flex flex-col items-center justify-center backdrop-blur-[2px]">
-              <Check className="w-12 h-12 text-white bg-green-600 rounded-full p-2 mb-2" />
-              <span className="text-white font-semibold text-lg">Completed</span>
-            </div>
-          ) : null}
-          
-          {ad.previewImage ? (
-            <img
-              src={ad.previewImage}
-              alt={ad.title}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-blue-100 to-purple-100">
-              <Play className="w-16 h-16 text-gray-400" />
-            </div>
-          )}
-          
-          {!isCompleted && (
-            <>
-              <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-black/50 text-white text-xs px-2 py-1 rounded">
-                <Clock className="w-3 h-3" />
-                <span>30s</span>
+    <div className="relative">
+      <motion.div whileHover={{ y: isCompleted || isDisabled ? 0 : -5 }} transition={{ type: 'spring', stiffness: 300 }}>
+        <Card
+          className={`cursor-pointer overflow-hidden h-full flex flex-col transition-shadow ${isCompleted
+              ? 'opacity-75'
+              : isDisabled
+                ? 'opacity-60 cursor-not-allowed'
+                : 'hover:shadow-lg'
+            }`}
+          onClick={handleClick}
+        >
+          <div className="relative bg-[--color-bg-tertiary] aspect-video flex items-center justify-center">
+            {isCompleted ? (
+              <div className="absolute inset-0 bg-green-500/90 flex flex-col items-center justify-center backdrop-blur-[2px]">
+                <Check className="w-12 h-12 text-white bg-green-600 rounded-full p-2 mb-2" />
+                <span className="text-white font-semibold text-lg">Completed</span>
               </div>
-              <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-yellow-500 text-white text-xs px-2 py-1 rounded">
-                <DollarSign className="w-3 h-3" />
-                <span>{ad.totalReward} FOG</span>
+            ) : isDisabled ? (
+              <div className="absolute inset-0 bg-red-500/90 flex flex-col items-center justify-center backdrop-blur-[2px]">
+                <AlertTriangle className="w-12 h-12 text-white bg-red-600 rounded-full p-2 mb-2" />
+                <span className="text-white font-semibold text-lg">Profile Required</span>
               </div>
-            </>
-          )}
-        </div>
-        
-        <CardHeader>
-          <CardTitle className="text-lg">{ad.title}</CardTitle>
-          <CardDescription>{ad.description}</CardDescription>
-        </CardHeader>
-        
-        <CardContent className="flex-grow">
-          {isCompleted ? (
-            <div className="text-sm font-medium text-green-600 flex items-center">
-              <Check className="w-4 h-4 mr-2" /> 
-              Completed
-            </div>
-          ) : (
-            <div className="flex justify-between items-center text-sm text-[--color-text-secondary]">
-              <span className="flex items-center gap-1">
-                <Award className="w-4 h-4" />
-                {ad.questions.length} questions
-              </span>
-              <span className="flex items-center gap-1">
-                <Eye className="w-4 h-4" />
-                {ad.totalViews || 0} views
-              </span>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </motion.div>
+            ) : null}
+
+            {ad.previewImage ? (
+              <img
+                src={ad.previewImage}
+                alt={ad.title}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-blue-100 to-purple-100">
+                <Play className="w-16 h-16 text-gray-400" />
+              </div>
+            )}
+
+            {!isCompleted && !isDisabled && (
+              <>
+                <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-black/50 text-white text-xs px-2 py-1 rounded">
+                  <Clock className="w-3 h-3" />
+                  <span>15s</span>
+                </div>
+                <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-yellow-500 text-white text-xs px-2 py-1 rounded">
+                  <DollarSign className="w-3 h-3" />
+                  <span>{ad.totalReward} FOG</span>
+                </div>
+              </>
+            )}
+          </div>
+
+          <CardHeader>
+            <CardTitle className="text-lg">{ad.title}</CardTitle>
+            <CardDescription>{ad.description}</CardDescription>
+          </CardHeader>
+
+          <CardContent className="flex-grow">
+            {isCompleted ? (
+              <div className="text-sm font-medium text-green-600 flex items-center">
+                <Check className="w-4 h-4 mr-2" />
+                Completed
+              </div>
+            ) : isDisabled ? (
+              <div className="text-sm font-medium text-red-600 flex items-center">
+                <AlertTriangle className="w-4 h-4 mr-2" />
+                Complete Profile Required
+              </div>
+            ) : (
+              <div className="flex justify-between items-center text-sm text-[--color-text-secondary]">
+                <span className="flex items-center gap-1">
+                  <Award className="w-4 h-4" />
+                  {ad.questions.length} questions
+                </span>
+                <span className="flex items-center gap-1">
+                  <Eye className="w-4 h-4" />
+                  {ad.totalViews || 0} views
+                </span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Tooltip for disabled state */}
+      {showTooltip && isDisabled && disabledReason && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-50"
+        >
+          <div className="bg-red-600 text-white px-3 py-2 rounded-lg shadow-lg text-sm max-w-xs text-center">
+            {disabledReason}
+            <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-red-600 rotate-45"></div>
+          </div>
+        </motion.div>
+      )}
+    </div>
   );
 };
 
@@ -113,14 +163,14 @@ type WatchPhase = 'list' | 'video' | 'questions' | 'thankyou';
 const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate }) => {
   const { user } = useAuth();
   const videoRef = useRef<HTMLVideoElement>(null);
-  
+
   // State management
   const [ads, setAds] = useState<Ad[]>([]);
   const [completedAdIds, setCompletedAdIds] = useState<string[]>([]);
   const [userStats, setUserStats] = useState<UserAdStats | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  
+
   // Ad watching state
   const [phase, setPhase] = useState<WatchPhase>('list');
   const [selectedAd, setSelectedAd] = useState<Ad | null>(null);
@@ -129,7 +179,7 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
   const [answers, setAnswers] = useState<{ questionId: string; selectedAnswer?: number; textAnswer?: string; }[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [earnedAmount, setEarnedAmount] = useState(0);
-  
+
   // Video player state
   const [videoProgress, setVideoProgress] = useState(0);
   const [videoDuration, setVideoDuration] = useState(0);
@@ -141,6 +191,52 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
       loadData();
     }
   }, [user]);
+
+  // Helper function to check profile completeness
+  const getProfileMissingFields = (profile: UserProfile | null): string[] => {
+    if (!profile) return ['country', 'city', 'phone'];
+
+    const missingFields: string[] = [];
+
+    if (!profile.country || profile.country.trim() === '') {
+      missingFields.push('country');
+    }
+
+    if (!profile.city || profile.city.trim() === '') {
+      missingFields.push('city');
+    }
+
+    if (!profile.phone || profile.phone.trim() === '') {
+      missingFields.push('phone');
+    }
+
+    return missingFields;
+  };
+
+  const isProfileComplete = (profile: UserProfile | null): boolean => {
+    return getProfileMissingFields(profile).length === 0;
+  };
+
+  const getMissingFieldsText = (missingFields: string[]): string => {
+    if (missingFields.length === 0) return '';
+
+    const fieldNames = missingFields.map(field => {
+      switch (field) {
+        case 'country': return 'Country';
+        case 'city': return 'City';
+        case 'phone': return 'Phone Number';
+        default: return field;
+      }
+    });
+
+    if (fieldNames.length === 1) {
+      return fieldNames[0];
+    } else if (fieldNames.length === 2) {
+      return `${fieldNames[0]} and ${fieldNames[1]}`;
+    } else {
+      return `${fieldNames.slice(0, -1).join(', ')}, and ${fieldNames[fieldNames.length - 1]}`;
+    }
+  };
 
   const loadData = async () => {
     if (!user) return;
@@ -167,10 +263,17 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
   };
 
   const handleWatchAd = (ad: Ad) => {
+    // Check if profile is complete before allowing ad watching
+    if (!isProfileComplete(userProfile)) {
+      const missingFields = getProfileMissingFields(userProfile);
+      toast.error(`Please complete your profile first. Missing: ${getMissingFieldsText(missingFields)}`);
+      return;
+    }
+
     console.log('Opening ad for watching:', ad);
     console.log('Ad video URL:', ad.videoUrl);
     console.log('Ad preview image:', ad.previewImage);
-    
+
     setSelectedAd(ad);
     setPhase('video');
     setVideoEnded(false);
@@ -229,12 +332,12 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
   };
 
   const handleAnswerChange = (questionId: string, value: string | number, isTextAnswer: boolean = false) => {
-    setAnswers(prev => prev.map(answer => 
-      answer.questionId === questionId 
-        ? { 
-            ...answer, 
-            [isTextAnswer ? 'textAnswer' : 'selectedAnswer']: value,
-          }
+    setAnswers(prev => prev.map(answer =>
+      answer.questionId === questionId
+        ? {
+          ...answer,
+          [isTextAnswer ? 'textAnswer' : 'selectedAnswer']: value,
+        }
         : answer
     ));
   };
@@ -256,8 +359,8 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
       const userDetails = {
         email: userProfile?.email || user.email || '',
         phone: userProfile?.phone || undefined,
-        address: userProfile?.city && userProfile?.country 
-          ? `${userProfile.city}, ${userProfile.country}` 
+        address: userProfile?.city && userProfile?.country
+          ? `${userProfile.city}, ${userProfile.country}`
           : undefined
       };
 
@@ -265,7 +368,7 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
       setEarnedAmount(result.earnedAmount);
       setPhase('thankyou');
       toast.success(`Great! You earned ${result.earnedAmount} FOG coins!`);
-      
+
       // Add this ad to completed list
       setCompletedAdIds(prev => [...prev, selectedAd.id]);
     } catch (error) {
@@ -288,17 +391,17 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
 
   const replacePlaceholders = (text: string): string => {
     if (!userProfile) return text;
-    
+
     return text
       .replace(/\{userName\}/g, userProfile.name || userProfile.displayName || 'User')
-      .replace(/\{userAge\}/g, userProfile.age?.toString() || 'N/A')
+      .replace(/\{userAge\}/g, 'N/A') // Age property not available in UserProfile
       .replace(/\{userLocation\}/g, userProfile.city && userProfile.country ? `${userProfile.city}, ${userProfile.country}` : 'N/A');
   };
 
   // Get current question and answer
   const currentQuestion = selectedAd?.questions[currentQuestionIndex];
   const currentAnswer = answers.find(a => a.questionId === currentQuestion?.id);
-  const isCurrentQuestionAnswered = currentAnswer && 
+  const isCurrentQuestionAnswered = currentAnswer &&
     (currentAnswer.selectedAnswer !== undefined || currentAnswer.textAnswer?.trim());
 
   if (!user) {
@@ -362,7 +465,7 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
                         setVideoEnded(true);
                       }}
                     />
-                    
+
                     {/* Play Button Overlay */}
                     {!isVideoPlaying && !videoEnded && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/20">
@@ -381,7 +484,7 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
                         </Button>
                       </div>
                     )}
-                    
+
                     {/* Video Controls Overlay */}
                     <div className="absolute bottom-4 left-4 right-4">
                       {/* Progress Bar */}
@@ -406,7 +509,7 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
                             )}
                           </span>
                           <div className="flex-1 bg-gray-600 rounded-full h-2">
-                            <div 
+                            <div
                               className="bg-blue-500 h-2 rounded-full transition-all duration-200"
                               style={{ width: `${videoProgress}%` }}
                             />
@@ -415,7 +518,7 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
                             {formatTime(videoCurrentTime)} / {formatTime(videoDuration)}
                           </span>
                         </div>
-                        
+
                         {!videoEnded && (
                           <div className="text-center">
                             <p className="text-white/80 text-sm">
@@ -491,7 +594,7 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
                 <span>{Math.round(((currentQuestionIndex + 1) / selectedAd.questions.length) * 100)}% Complete</span>
               </div>
               <div className="w-full bg-[--color-bg-tertiary] rounded-full h-2">
-                <div 
+                <div
                   className="bg-[--color-primary] h-2 rounded-full transition-all duration-300"
                   style={{ width: `${((currentQuestionIndex + 1) / selectedAd.questions.length) * 100}%` }}
                 />
@@ -517,7 +620,7 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
                         onChange={(e) => handleAnswerChange(currentQuestion.id, parseInt(e.target.value))}
                         className="w-4 h-4 text-[--color-primary] border-[--color-border] focus:ring-[--color-primary]"
                       />
-                      <label 
+                      <label
                         htmlFor={`${currentQuestion.id}_${index}`}
                         className="text-[--color-text-primary] cursor-pointer flex-1"
                       >
@@ -556,7 +659,7 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
                           {userProfile?.email || user?.email || 'N/A'}
                         </span>
                       </div>
-                      
+
                       {/* Phone */}
                       <div className="flex items-center space-x-3">
                         <div className="w-5 h-5 bg-[--color-primary] rounded flex items-center justify-center">
@@ -567,7 +670,7 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
                           {userProfile?.phone || 'Please update your phone in profile settings'}
                         </span>
                       </div>
-                      
+
                       {/* Address */}
                       <div className="flex items-center space-x-3">
                         <div className="w-5 h-5 bg-[--color-primary] rounded flex items-center justify-center">
@@ -575,13 +678,13 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
                         </div>
                         <span className="text-sm font-medium text-[--color-text-secondary]">Share address:</span>
                         <span className="text-sm text-[--color-text-primary]">
-                          {userProfile?.city && userProfile?.country 
-                            ? `${userProfile.city}, ${userProfile.country}` 
+                          {userProfile?.city && userProfile?.country
+                            ? `${userProfile.city}, ${userProfile.country}`
                             : 'Please update your address in profile settings'}
                         </span>
                       </div>
                     </div>
-                    
+
                     <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                       <p className="text-xs text-blue-700">
                         <strong>Note:</strong> This information will be shared with the advertiser to help them understand their audience and improve their services. Your privacy is important to us.
@@ -598,8 +701,8 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
                   disabled={!isCurrentQuestionAnswered || isSubmitting}
                   className="px-8 py-3"
                 >
-                  {isSubmitting ? 'Submitting...' : 
-                   currentQuestionIndex === selectedAd.questions.length - 1 ? 'Submit Answers' : 'Next Question'}
+                  {isSubmitting ? 'Submitting...' :
+                    currentQuestionIndex === selectedAd.questions.length - 1 ? 'Submit Answers' : 'Next Question'}
                 </Button>
               </div>
             </div>
@@ -621,15 +724,15 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
             <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
               <Check className="w-10 h-10 text-white" />
             </div>
-            
+
             <h2 className="text-3xl font-bold text-[--color-text-primary] mb-4">
               Thank You!
             </h2>
-            
+
             <p className="text-[--color-text-secondary] mb-6">
               You have successfully completed the ad and answered all questions.
             </p>
-            
+
             <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-8">
               <div className="flex items-center justify-center gap-2 text-green-700">
                 <Gift className="w-5 h-5" />
@@ -656,21 +759,70 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
   return (
     <div className="min-h-screen bg-[--color-bg-primary]">
       {/* Header */}
-      <div className="bg-[--color-bg-secondary] shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-[--color-text-primary]">Watch Ads & Earn</h1>
-              {/* <p className="text-[--color-text-secondary] mt-1">Complete ads and answer questions to earn FOG coins</p> */}
-              <p className="text-[--color-text-secondary] mt-1">Comin soon..</p>
-
-            </div>
-          </div>
+      <div className=" shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+          <motion.div
+            {...{
+              initial: { opacity: 0, y: 20 },
+              animate: { opacity: 1, y: 0 },
+              transition: { duration: 0.5 },
+            }}
+            className="max-w-4xl mx-auto text-center mb-12"
+          >
+            <h1 className="text-4xl md:text-6xl font-bold mb-4">Watch Ads & Earn</h1>
+            <p className="text-lg md:text-xl text-[--color-text-secondary] mb-2">
+              Complete ads and answer questions to earn FOG coins
+            </p>
+          </motion.div>
         </div>
       </div>
 
+      {/* Profile Completion Warning */}
+      {!loading && userProfile && !isProfileComplete(userProfile) && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-0">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-6 mb-6"
+          >
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                <AlertTriangle className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-amber-800 dark:text-amber-200 mb-2">
+                  Complete Your Profile to Watch Ads
+                </h3>
+                <p className="text-amber-700 dark:text-amber-300 mb-4">
+                  To ensure quality ad experiences and proper targeting, please complete your profile information.
+                  You're missing: <strong>{getMissingFieldsText(getProfileMissingFields(userProfile))}</strong>.
+                </p>
+                {/* <div className="flex flex-wrap gap-3 mb-4">
+                  {getProfileMissingFields(userProfile).map(field => (
+                    <div key={field} className="flex items-center gap-2 text-sm text-amber-700 dark:text-amber-300">
+                      {field === 'country' && <Globe className="w-4 h-4" />}
+                      {field === 'city' && <MapPin className="w-4 h-4" />}
+                      {field === 'phone' && <Phone className="w-4 h-4" />}
+                      <span className="capitalize">{field === 'phone' ? 'Phone Number' : field}</span>
+                    </div>
+                  ))}
+                </div> */}
+                <button
+                  onClick={() => navigate('profile')}
+                  className="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white font-medium px-4 py-2 rounded-lg transition-colors"
+                >
+                  <User className="w-4 h-4" />
+                  Complete Profile Now
+                  <ExternalLink className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
       {/* Stats Cards */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
         {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardContent className="p-6">
@@ -730,7 +882,7 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
         </div> */}
 
         {/* Available Ads */}
-        {/* <div className="mb-8">
+        <div className="mb-8">
           <h2 className="text-2xl font-bold text-[--color-text-primary] mb-6">Available Ads</h2>
 
           {loading ? (
@@ -756,17 +908,27 @@ const WatchAdPage: React.FC<{ navigate: (route: Route) => void }> = ({ navigate 
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {ads.map((ad) => (
-                <AdCard 
-                  key={ad.id} 
-                  ad={ad} 
-                  isCompleted={completedAdIds.includes(ad.id)}
-                  onWatch={handleWatchAd} 
-                />
-              ))}
+              {ads.map((ad) => {
+                const missingFields = getProfileMissingFields(userProfile);
+                const isDisabled = missingFields.length > 0;
+                const disabledReason = isDisabled
+                  ? `Complete your profile first. Missing: ${getMissingFieldsText(missingFields)}`
+                  : undefined;
+
+                return (
+                  <AdCard
+                    key={ad.id}
+                    ad={ad}
+                    isCompleted={completedAdIds.includes(ad.id)}
+                    isDisabled={isDisabled}
+                    disabledReason={disabledReason}
+                    onWatch={handleWatchAd}
+                  />
+                );
+              })}
             </div>
           )}
-        </div> */}
+        </div>
       </div>
     </div>
   );
